@@ -10,8 +10,10 @@ const Signin = () => {
   const [loading, setLoading] = useState(false); // Track loading state
   const navigate = useNavigate();
 
-  axios.defaults.withCredentials = true;
-
+  // axios.defaults.withCredentials = true;
+// Set this at the top of your component file
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true); // Start loading animation

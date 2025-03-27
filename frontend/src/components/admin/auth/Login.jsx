@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 const Login = () => {
   const navigate = useNavigate();
   const [registrationId, setRegistrationId] = useState('');
@@ -11,7 +12,7 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  axios.defaults.withCredentials = true;
+  // axios.defaults.withCredentials = true;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
