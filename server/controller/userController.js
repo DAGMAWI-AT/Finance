@@ -34,39 +34,19 @@ const loginLimite = rateLimit({
 
 
 // Handle login
-async function login(req, res) {
+// Example in Node.js Express
+const login = async (req, res) => {
   try {
     const { registrationId, email, password } = req.body;
-    const [users] = await pool.query(
-      `SELECT * FROM users WHERE registrationId = ? AND email = ?`,
-      [registrationId, email]
-    );
-
-    if (!users.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No user found with the provided credentials",
-      });
+    // ... (fetch user from database and validate credentials)
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    if (!(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ success: false, message: "Invalid password" });
     }
 
-    const user = users[0];
-
-    if (user.status !== "active") {
-      return res.status(403).json({
-        success: false,
-        message: "Your account is inactive. Please contact support.",
-      });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid password.",
-      });
-    }
-
-    // Generate JWT token
+    // Generate token
     const token = jwt.sign(
       {
         id: user.id,
@@ -78,51 +58,22 @@ async function login(req, res) {
       { expiresIn: "1h" }
     );
 
-    // Return token in response (not as cookie)
-    return res.json({ 
-      success: true,
-      token, // Send token directly in response
-      user: {
-        id: user.id,
-        registrationId: user.registrationId,
-        role: user.role,
-        email: user.email
-      }
+    // Optionally, set the token as a cookie:
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 1000,
+      path: "/",
     });
+
+    return res.json({ success: true, token }); // Return token in response body
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
-}
+};
 
-async function me(req, res) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: No token found",
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, secretKey);
-    res.json({
-      success: true,
-      role: decoded.role,
-      registrationId: decoded.registrationId,
-      userId: decoded.userId,
-      id: decoded.id,
-    });
-  } catch (error) {
-    console.error("Error verifying token:", error);
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: Invalid token",
-    });
-  }
-}
 
 // async function me(req, res){
 //   const token = req.cookies.token;
@@ -149,32 +100,32 @@ async function me(req, res) {
 //   }
 // };
 
-// async function me(req, res) {
-//   const token = req.cookies.token;
-//   if (!token) {
-//     return res.status(401).json({
-//       success: false,
-//       message: "Unauthorized: No token found",
-//     });
-//   }
+async function me(req, res) {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: No token found",
+    });
+  }
 
-//   try {
-//     const decoded = jwt.verify(token, secretKey);
-//     res.json({
-//       success: true,
-//       role: decoded.role,
-//       registrationId: decoded.registrationId,
-//       userId: decoded.userId,
-//       id: decoded.id,
-//     });
-//   } catch (error) {
-//     console.error("Error verifying token:", error);
-//     return res.status(401).json({
-//       success: false,
-//       message: "Unauthorized: Invalid token",
-//     });
-//   }
-// }
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    res.json({
+      success: true,
+      role: decoded.role,
+      registrationId: decoded.registrationId,
+      userId: decoded.userId,
+      id: decoded.id,
+    });
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: Invalid token",
+    });
+  }
+}
 
 
 
