@@ -32,7 +32,6 @@ const loginLimite = rateLimit({
   headers: true, // Include rate limiting headers in the response
 });
 
-
 // Handle login
 async function login(req, res) {
   try {
@@ -60,7 +59,6 @@ async function login(req, res) {
 
     // Verify password (compare plain-text password with hashed password)
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -141,10 +139,10 @@ async function me(req, res) {
     const decoded = jwt.verify(token, secretKey);
     res.json({
       success: true,
-      role: decoded.role,
+      id: decoded.id,
       registrationId: decoded.registrationId,
       userId: decoded.userId,
-      id: decoded.id,
+      role: decoded.role,
     });
   } catch (error) {
     console.error("Error verifying token:", error);
@@ -155,8 +153,6 @@ async function me(req, res) {
   }
 }
 
-
-
 // Create User Account
 async function createAccount(req, res) {
   try {
@@ -164,33 +160,54 @@ async function createAccount(req, res) {
 
     const { registrationId, password } = req.body;
     if (!registrationId || !password) {
-      return res.status(400).json({ success: false, message: "Registration ID and password are required." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Registration ID and password are required.",
+        });
     }
 
     // Check if the registrationId exists in CSO table
-    const [csoRecord] = await pool.query(`SELECT * FROM cso WHERE registrationId = ?`, [registrationId]);
+    const [csoRecord] = await pool.query(
+      `SELECT * FROM cso WHERE registrationId = ?`,
+      [registrationId]
+    );
     if (!csoRecord.length) {
-      return res.status(404).json({ success: false, message: "CSO record not found for the provided registration ID." });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "CSO record not found for the provided registration ID.",
+        });
     }
 
     // Check if user already exists
-    const [existingUser] = await pool.query(`SELECT * FROM users WHERE registrationId = ?`, [registrationId]);
+    const [existingUser] = await pool.query(
+      `SELECT * FROM users WHERE registrationId = ?`,
+      [registrationId]
+    );
     if (existingUser.length) {
-      return res.status(400).json({ success: false, message: "User already exists." });
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user into users table
-    await pool.query(`INSERT INTO users (registrationId, userId, name, email, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?)`, [
-      registrationId,
-      csoRecord[0].id,
-      csoRecord[0].csoName,
-      csoRecord[0].email,
-      csoRecord[0].role,
-      "active",
-      hashedPassword,
-    ]);
+    await pool.query(
+      `INSERT INTO users (registrationId, userId, name, email, role, status, password) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        registrationId,
+        csoRecord[0].id,
+        csoRecord[0].csoName,
+        csoRecord[0].email,
+        csoRecord[0].role,
+        "active",
+        hashedPassword,
+      ]
+    );
 
     res.json({ success: true, message: "User account created successfully." });
   } catch (error) {
@@ -276,7 +293,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
 async function updatePassword(req, res) {
   try {
     const userId = req.user.id; // From JWT middleware
@@ -291,7 +307,9 @@ async function updatePassword(req, res) {
     }
 
     // Fetch user from the database
-    const [rows] = await pool.query(`SELECT * FROM users WHERE id = ?`, [userId]);
+    const [rows] = await pool.query(`SELECT * FROM users WHERE id = ?`, [
+      userId,
+    ]);
 
     if (rows.length === 0) {
       return res.status(404).json({
@@ -303,7 +321,10 @@ async function updatePassword(req, res) {
     const user = rows[0]; // Get user data
 
     // Compare the current password with the hashed password in the database
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -339,7 +360,6 @@ async function logout(req, res) {
   res.clearCookie("user");
   return res.json({ message: "Successfully logged out" });
 }
-
 
 const forgotPassword = async (req, res) => {
   try {
