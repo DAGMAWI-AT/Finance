@@ -25,7 +25,7 @@ const router = express.Router();
 router.post("/login", login);
 router.post("/logout", logout);
 router.post("/createAccount",  createAccount);
-router.get("/me", me);
+router.get("/me", verifyToken, me);
 
 router.get("/users", verifyToken, authorizeRoles("admin","sup_admin"), getUsers);
 router.get("/res/dashboard", getReportDashboard);
