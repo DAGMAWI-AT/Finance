@@ -1,0 +1,1273 @@
+import React from "react";
+import "./Hero.css";
+function Hero() {
+  return (
+    <>
+      <div class="hero-section">
+        <div class="hero-content">
+          <div class="live-indicator">Live</div>
+          <h1>Bisofftu cso meeting now</h1>
+          <p>for civil society association</p>
+          <button>Watch Live at 4:35 AM EST</button>
+        </div>
+
+        <div class="video-thumbnail">
+          <iframe
+            src="https://www.youtube.com/embed/AdDkHmuYWaY"
+            title="Video Thumbnail"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>{" "}
+        </div>
+        <div class="recent-articles">
+        <div>
+          <h4>November 19, 2024</h4>
+          <p>
+            <a href="#">Situation Of Ergent Metting for all CSO</a>
+          </p>
+        </div>
+
+        <div>
+          <h4>November 30, 2024</h4>
+          <p>
+            <a href="#">Last Finace Report Date warnning</a>
+          </p>
+        </div>
+      </div>
+      </div>
+   
+     
+    </>
+  );
+}
+
+export default Hero;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState } from "react";
+import { FaSortAlphaDown, FaSortAlphaUp, FaThLarge, FaList } from "react-icons/fa";
+
+const Csos = () => {
+  const [csos, setCsos] = useState([
+    {
+      id: 1,
+      name: "Green Earth Initiative",
+      date: "2022-05-15",
+      notifications: 1,
+      imageUrl: "https://via.placeholder.com/100",
+    },
+    {
+      id: 2,
+      name: "Youth for Change",
+      date: "2021-11-20",
+      notifications: 2,
+      imageUrl: "https://via.placeholder.com/100",
+    },
+    {
+      id: 3,
+      name: "Health and Wellness Foundation",
+      date: "2023-01-10",
+      notifications: 0,
+      imageUrl: "https://via.placeholder.com/100",
+    },
+    {
+      id: 4,
+      name: "Community Builders Network",
+      date: "2020-06-25",
+      notifications: 1,
+      imageUrl: "https://via.placeholder.com/100",
+    },
+    {
+      id: 5,
+      name: "Educators United",
+      date: "2023-07-05",
+      notifications: 3,
+      imageUrl: "https://via.placeholder.com/100",
+    },
+  ]);
+
+  const [filter, setFilter] = useState("alphabet");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState({ start: "", end: "" });
+  const [displayMode, setDisplayMode] = useState("gallery");
+
+  const handleClick = (id) => {
+    const selectedCso = csos.find((cso) => cso.id === id);
+    alert(`You clicked on: ${selectedCso.name}`);
+  };
+
+  const handleSortChange = (order) => {
+    setFilter(order);
+    setCsos((prev) =>
+      [...prev].sort((a, b) => {
+        if (order === "asc") return a.name.localeCompare(b.name);
+        if (order === "desc") return b.name.localeCompare(a.name);
+        return 0;
+      })
+    );
+  };
+
+  const handleDateFilterChange = (e) => {
+    const { name, value } = e.target;
+    setDateFilter((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredCsos = csos
+    .filter((cso) =>
+      cso.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((cso) => {
+      const startDate = dateFilter.start ? new Date(dateFilter.start) : new Date(0);
+      const endDate = dateFilter.end ? new Date(dateFilter.end) : new Date();
+      const csoDate = new Date(cso.date);
+      return csoDate >= startDate && csoDate <= endDate;
+    });
+
+  const toggleDisplayMode = () => {
+    setDisplayMode((prev) => (prev === "gallery" ? "list" : "gallery"));
+  };
+
+  return (
+    <div className="p-6 mx-auto max-w-6xl bg-gray-100 rounded-lg shadow-lg">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-gray-700">Civic Society Organizations</h2>
+      </div>
+
+      {/* Filters Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0">
+        <div className="flex items-center space-x-4">
+          <label className="text-gray-700 font-medium">
+            Sort By:
+            <div className="flex space-x-2 items-center ml-2">
+              <button onClick={() => handleSortChange("asc")}>
+                <FaSortAlphaDown className="text-xl text-gray-600" />
+              </button>
+              <button onClick={() => handleSortChange("desc")}>
+                <FaSortAlphaUp className="text-xl text-gray-600" />
+              </button>
+            </div>
+          </label>
+        </div>
+
+        <div className="flex space-x-4 items-center">
+          <label className="text-gray-700 font-medium">
+            Date Range:
+            <input
+              type="date"
+              name="start"
+              value={dateFilter.start}
+              onChange={handleDateFilterChange}
+              className="p-2 border rounded-md shadow-sm focus:ring focus:ring-blue-200 w-36"
+            />
+            <span className="mx-2">to</span>
+            <input
+              type="date"
+              name="end"
+              value={dateFilter.end}
+              onChange={handleDateFilterChange}
+              className="p-2 border rounded-md shadow-sm focus:ring focus:ring-blue-200 w-36"
+            />
+          </label>
+        </div>
+
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={handleSearch}
+          placeholder="Search by name"
+          className="px-4 py-2 border rounded-md shadow-sm focus:ring focus:ring-blue-200 w-36 "
+        />
+      </div>
+
+      {/* Display Mode Toggle */}
+      <div className="flex justify-end items-center mb-4">
+        <button
+          onClick={toggleDisplayMode}
+          className="p-2 text-2xl rounded-full border shadow-md hover:bg-gray-200 transition-colors"
+          title={`Switch to ${displayMode === "gallery" ? "List View" : "Gallery View"}`}
+        >
+          {displayMode === "gallery" ? (
+            <FaList className="text-gray-700" />
+          ) : (
+            <FaThLarge className="text-gray-700" />
+          )}
+        </button>
+      </div>
+
+      {/* Displaying CSOs */}
+      <div
+        className={`${
+          displayMode === "gallery"
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            : "space-y-4"
+        }`}
+      >
+      {filteredCsos.length > 0 ? (
+  filteredCsos.map((cso) => (
+    <div
+      key={cso.id}
+      className={`relative ${
+        displayMode === "gallery"
+          ? "cursor-pointer bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 hover:shadow-md p-4"
+          : "flex items-center p-4 border border-gray-200 rounded-lg bg-white shadow-sm space-x-4"
+      }`}
+      onClick={() => handleClick(cso.id)}
+    >
+      {cso.notifications > 0 && (
+        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+          {cso.notifications}
+        </span>
+      )}
+      <img
+        src={cso.imageUrl}
+        alt={cso.name}
+        className={`${
+          displayMode === "gallery" ? "w-20 h-20 rounded-full object-cover mb-3" : "w-16 h-16 rounded-full object-cover"
+        }`}
+      />
+      <div>
+        <div className="text-xl font-medium text-gray-700">{cso.name}</div>
+        <div className="text-sm text-gray-500">
+          Registered on: {new Date(cso.date).toLocaleDateString()}
+        </div>
+      </div>
+    </div>
+  ))
+) : (
+  <div className="text-gray-500 text-center">No CSOs found matching your criteria.</div>
+)}
+
+      </div>
+    </div>
+  );
+};
+
+export default Csos;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///
+import React from "react";
+import "./Hero.css"
+
+function Hero() {
+  return (
+    <div className="hero mt-0 w-full pt-[4vh] md:pt-[12vh] h-screen bg-[#0f0715] overflow-hidden relative bg-cover bg-center">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black opacity-40"></div>
+
+      {/* Content */}
+      <div className="flex justify-center items-center flex-col w-[90%] sm:w-[80%] h-full mx-auto relative z-10">
+        <h1
+          data-aos="fade-left"
+          className="text-white text-opacity-80 text-center text-sm sm:text-lg uppercase font-medium font-roboto aos-init aos-animate"
+        >
+          Bisofftu Finace Office
+        </h1>
+        <h1
+          data-aos="fade-right"
+          data-aos-delay="150"
+          className="tracking-[1.5px] text-center font-roboto font-semibold text-2xl sm:text-5xl bg-gradient-to-r from-[#3b82f6] to-[#2f4cac] bg-clip-text text-transparent mt-4 aos-init aos-animate"
+        >
+          Finance Office{" "}
+        </h1>
+        <p
+          data-aos="zoom-in"
+          data-aos-delay="300"
+          className="w-[100%] sm:w-[70%] font-montserrat text-center text-xs sm:text-lg text-gray-400 mt-4 aos-init aos-animate"
+        >
+          for civil society association{" "}
+        </p>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-7 left-1/2 transform -translate-x-1/2 text-white">
+        <svg
+          stroke="currentColor"
+          fill="currentColor"
+          strokeWidth="0"
+          viewBox="0 0 448 512"
+          className="text-3xl bounce-animation"
+          height="1em"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+export default Hero;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="" style="opacity: 1; transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);"><div><div><div class="MuiPaper-root jss10925 MuiPaper-elevation2 MuiPaper-rounded"><div class="jss10926"><div class="jss10927"><span class="jss10935"><i class="ion-ios-create-outline"></i></span><h2 class="MuiTypography-root jss10928 MuiTypography-h6">In-Row Editable Cell</h2></div><p class="MuiTypography-root jss10929 MuiTypography-body1">The Editable Table Cell supports editing features including creating, updating and deleting rows. The editing state contains information about rows currently being edited, changes applied to a particular row, and rows that have been deleted and created.</p></div><section class="jss10930 jss10931"><div class="jss10924"><div><div class="jss10937"><div><div class="MuiToolbar-root MuiToolbar-regular jss11002 MuiToolbar-gutters"><div class="jss11003"><h6 class="MuiTypography-root MuiTypography-h6">Inventory Data</h6></div><div class="jss10994"></div><div class="jss11001"><button class="MuiButtonBase-root MuiButton-root MuiButton-contained jss11004 MuiButton-containedSecondary" tabindex="0" type="button" title="Add Item"><span class="MuiButton-label"><svg class="MuiSvgIcon-root jss11005" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></div></div><div class="jss10992"><table class="MuiTable-root mVd-6DxWYz2MfjxKU4Ma-Q== jss10999 jss11010"><thead class="MuiTableHead-root"><tr class="MuiTableRow-root MuiTableRow-head"><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Category</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="100">Price</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Date Updated</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Time Updated</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Name</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="100">Available</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col">Action</th></tr></thead><tbody class="MuiTableBody-root"><tr class=""><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiInputBase-root MuiInput-root MuiInput-underline pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g== Mui-disabled Mui-disabled"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled Mui-disabled" role="button" aria-disabled="true" aria-haspopup="listbox" aria-labelledby="1" id="1">Sporting Goods</div><input name="category" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" value="Sporting Goods"><svg class="MuiSvgIcon-root MuiSelect-icon Mui-disabled" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="1" name="price" type="number" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="49.99"></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11023" textalign="center"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="date" placeholder="10/10/2018" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="03/04/2018"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path><path fill="none" d="M0 0h24v24H0z"></path></svg></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11024"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g==" format="hh:mm A" mask="/\d/,/\d/,:,/\d/,/\d/, ,/a|p/i,M"><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="time" placeholder="08:00 AM" readonly="" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="10:00 AM"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button"><span class="MuiIconButton-label"><span class="material-icons MuiIcon-root" aria-hidden="true">access_time</span></span><span class="MuiTouchRipple-root"></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="1" name="name" placeholder="name" type="text" aria-label="Description" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="football"></div></div></td><td class="MuiTableCell-root MuiTableCell-body oxZbX9RJLMW9wj08V4xJ2w== MuiTableCell-paddingNone" textalign="center"><div class="+pT-JEW-ObNpqNBGyAbD1A== +MyvEreLrKfWLTPbB9D6XQ=="></div><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root pRNtIwmOugZ2PyFz74F5Fg=="><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary jss11026 Mui-checked" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" id="1" name="available" type="checkbox" value="true" checked=""><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"></span></label></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root nTC32Q-vkjaUwV8yTmcTpw== jss11022 MuiIconButton-colorSecondary" tabindex="0" type="button" aria-label="Done"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr class=""><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiInputBase-root MuiInput-root MuiInput-underline pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g== Mui-disabled Mui-disabled"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled Mui-disabled" role="button" aria-disabled="true" aria-haspopup="listbox" aria-labelledby="2" id="2">Other</div><input name="category" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" value="Other"><svg class="MuiSvgIcon-root MuiSelect-icon Mui-disabled" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="2" name="price" type="number" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="9.99"></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11023" textalign="center"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="date" placeholder="10/10/2018" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="02/04/2018"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path><path fill="none" d="M0 0h24v24H0z"></path></svg></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11024"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g==" format="hh:mm A" mask="/\d/,/\d/,:,/\d/,/\d/, ,/a|p/i,M"><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="time" placeholder="08:00 AM" readonly="" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="10:00 AM"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button"><span class="MuiIconButton-label"><span class="material-icons MuiIcon-root" aria-hidden="true">access_time</span></span><span class="MuiTouchRipple-root"></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="2" name="name" placeholder="name" type="text" aria-label="Description" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="baseball"></div></div></td><td class="MuiTableCell-root MuiTableCell-body oxZbX9RJLMW9wj08V4xJ2w== MuiTableCell-paddingNone" textalign="center"><div class="+pT-JEW-ObNpqNBGyAbD1A== +MyvEreLrKfWLTPbB9D6XQ=="></div><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root pRNtIwmOugZ2PyFz74F5Fg=="><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary jss11026 Mui-checked" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" id="2" name="available" type="checkbox" value="true" checked=""><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"></span></label></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root nTC32Q-vkjaUwV8yTmcTpw== jss11022 MuiIconButton-colorSecondary" tabindex="0" type="button" aria-label="Done"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr class=""><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiInputBase-root MuiInput-root MuiInput-underline pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g== Mui-disabled Mui-disabled"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled Mui-disabled" role="button" aria-disabled="true" aria-haspopup="listbox" aria-labelledby="3" id="3">Sporting Goods</div><input name="category" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" value="Sporting Goods"><svg class="MuiSvgIcon-root MuiSelect-icon Mui-disabled" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="3" name="price" type="number" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="29.99"></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11023" textalign="center"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="date" placeholder="10/10/2018" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="01/04/2018"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path><path fill="none" d="M0 0h24v24H0z"></path></svg></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11024"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g==" format="hh:mm A" mask="/\d/,/\d/,:,/\d/,/\d/, ,/a|p/i,M"><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="time" placeholder="08:00 AM" readonly="" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="10:00 AM"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button"><span class="MuiIconButton-label"><span class="material-icons MuiIcon-root" aria-hidden="true">access_time</span></span><span class="MuiTouchRipple-root"></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="3" name="name" placeholder="name" type="text" aria-label="Description" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="basketball"></div></div></td><td class="MuiTableCell-root MuiTableCell-body oxZbX9RJLMW9wj08V4xJ2w== MuiTableCell-paddingNone" textalign="center"><div class="+pT-JEW-ObNpqNBGyAbD1A== +MyvEreLrKfWLTPbB9D6XQ=="></div><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root pRNtIwmOugZ2PyFz74F5Fg=="><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" id="3" name="available" type="checkbox" value="false"><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"></span></label></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root nTC32Q-vkjaUwV8yTmcTpw== jss11022 MuiIconButton-colorSecondary" tabindex="0" type="button" aria-label="Done"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr class=""><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiInputBase-root MuiInput-root MuiInput-underline pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g== Mui-disabled Mui-disabled"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled Mui-disabled" role="button" aria-disabled="true" aria-haspopup="listbox" aria-labelledby="4" id="4">Electronics</div><input name="category" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" value="Electronics"><svg class="MuiSvgIcon-root MuiSelect-icon Mui-disabled" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="4" name="price" type="number" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="99.99"></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11023" textalign="center"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="date" placeholder="10/10/2018" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="30/03/2018"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path><path fill="none" d="M0 0h24v24H0z"></path></svg></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11024"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g==" format="hh:mm A" mask="/\d/,/\d/,:,/\d/,/\d/, ,/a|p/i,M"><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="time" placeholder="08:00 AM" readonly="" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="10:00 AM"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button"><span class="MuiIconButton-label"><span class="material-icons MuiIcon-root" aria-hidden="true">access_time</span></span><span class="MuiTouchRipple-root"></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="4" name="name" placeholder="name" type="text" aria-label="Description" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="iPod Touch"></div></div></td><td class="MuiTableCell-root MuiTableCell-body oxZbX9RJLMW9wj08V4xJ2w== MuiTableCell-paddingNone" textalign="center"><div class="+pT-JEW-ObNpqNBGyAbD1A== +MyvEreLrKfWLTPbB9D6XQ=="></div><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root pRNtIwmOugZ2PyFz74F5Fg=="><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary jss11026 Mui-checked" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" id="4" name="available" type="checkbox" value="true" checked=""><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"></span></label></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root nTC32Q-vkjaUwV8yTmcTpw== jss11022 MuiIconButton-colorSecondary" tabindex="0" type="button" aria-label="Done"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr class=""><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiInputBase-root MuiInput-root MuiInput-underline pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g== Mui-disabled Mui-disabled"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled Mui-disabled" role="button" aria-disabled="true" aria-haspopup="listbox" aria-labelledby="5" id="5">Electronics</div><input name="category" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" value="Electronics"><svg class="MuiSvgIcon-root MuiSelect-icon Mui-disabled" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="5" name="price" type="number" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="399.99"></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11023" textalign="center"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="date" placeholder="10/10/2018" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="29/03/2018"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path><path fill="none" d="M0 0h24v24H0z"></path></svg></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11024"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g==" format="hh:mm A" mask="/\d/,/\d/,:,/\d/,/\d/, ,/a|p/i,M"><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="time" placeholder="08:00 AM" readonly="" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="10:00 AM"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button"><span class="MuiIconButton-label"><span class="material-icons MuiIcon-root" aria-hidden="true">access_time</span></span><span class="MuiTouchRipple-root"></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="5" name="name" placeholder="name" type="text" aria-label="Description" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="iPhone 5"></div></div></td><td class="MuiTableCell-root MuiTableCell-body oxZbX9RJLMW9wj08V4xJ2w== MuiTableCell-paddingNone" textalign="center"><div class="+pT-JEW-ObNpqNBGyAbD1A== +MyvEreLrKfWLTPbB9D6XQ=="></div><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root pRNtIwmOugZ2PyFz74F5Fg=="><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" id="5" name="available" type="checkbox" value="false"><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"></span></label></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root nTC32Q-vkjaUwV8yTmcTpw== jss11022 MuiIconButton-colorSecondary" tabindex="0" type="button" aria-label="Done"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr class=""><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiInputBase-root MuiInput-root MuiInput-underline pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g== Mui-disabled Mui-disabled"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled Mui-disabled" role="button" aria-disabled="true" aria-haspopup="listbox" aria-labelledby="6" id="6">Electronics</div><input name="category" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" value="Electronics"><svg class="MuiSvgIcon-root MuiSelect-icon Mui-disabled" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="6" name="price" type="number" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="199.99"></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11023" textalign="center"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="date" placeholder="10/10/2018" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="28/03/2018"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path><path fill="none" d="M0 0h24v24H0z"></path></svg></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body jss11024"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g==" format="hh:mm A" mask="/\d/,/\d/,:,/\d/,/\d/, ,/a|p/i,M"><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedEnd"><input aria-invalid="false" disabled="" name="time" placeholder="08:00 AM" readonly="" type="text" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled MuiInputBase-inputAdornedEnd" value="10:00 AM"><div class="MuiInputAdornment-root MuiInputAdornment-positionEnd"><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button"><span class="MuiIconButton-label"><span class="material-icons MuiIcon-root" aria-hidden="true">access_time</span></span><span class="MuiTouchRipple-root"></span></button></div></div></div></td><td class="MuiTableCell-root MuiTableCell-body"><div class="MuiFormControl-root MuiTextField-root pRNtIwmOugZ2PyFz74F5Fg== ywRwmVoiF6Y1m9JvlF2f+g=="><div class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" disabled="" id="6" name="name" placeholder="name" type="text" aria-label="Description" class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled" value="nexus 7"></div></div></td><td class="MuiTableCell-root MuiTableCell-body oxZbX9RJLMW9wj08V4xJ2w== MuiTableCell-paddingNone" textalign="center"><div class="+pT-JEW-ObNpqNBGyAbD1A== +MyvEreLrKfWLTPbB9D6XQ=="></div><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root pRNtIwmOugZ2PyFz74F5Fg=="><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary jss11026 Mui-checked" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" id="6" name="available" type="checkbox" value="true" checked=""><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"></span></label></td><td class="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingNone"><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root nTC32Q-vkjaUwV8yTmcTpw== jss11022 MuiIconButton-colorSecondary" tabindex="0" type="button" aria-label="Done"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11022" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr></tbody></table></div></div></div></div></div></section></div></div><div><div class="MuiPaper-root jss10925 MuiPaper-elevation2 MuiPaper-rounded"><div class="jss10926"><div class="jss10927"><span class="jss10935"><i class="ion-ios-list-box-outline"></i></span><h2 class="MuiTypography-root jss10928 MuiTypography-h6">Redux Form Editable Cell</h2></div><p class="MuiTypography-root jss10929 MuiTypography-body1">In the Editable Table Cell Form mode allow You to create or edit via dedicated form(Redux Form). The design form itself inspired by Gmail with floating design and it can be expanded become popup mode</p></div><section class="jss10930 jss10931"><div class="jss10924"><div><div><div><div><div class="jss10988 jss10981"></div><section class="jss10981 jss10984 jss10980"><header>Add New Item<div class="jss10982"><button class="MuiButtonBase-root MuiIconButton-root jss10983" tabindex="0" type="button" aria-label="Expand" title="Full Screen"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v2h6.59L4 18.59 5.41 20 17 8.41V15h2V5z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root" tabindex="0" type="button" aria-label="Close" title="Close"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></div></header><div><form><section class="jss11046"><div><div class="MuiFormControl-root MuiTextField-root jss10977"><label class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated Mui-required Mui-required" data-shrink="false">Text Field<span aria-hidden="true" class="MuiFormLabel-asterisk MuiInputLabel-asterisk">&thinsp;*</span></label><div class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" name="text" placeholder="Text Field" required="" type="text" class="MuiInputBase-input MuiInput-input" value=""></div></div></div><div><div class="MuiFormControl-root MuiTextField-root jss10977"><label class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated Mui-required Mui-required" data-shrink="false">Email<span aria-hidden="true" class="MuiFormLabel-asterisk MuiInputLabel-asterisk">&thinsp;*</span></label><div class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"><input aria-invalid="false" name="email" placeholder="Email Field" required="" type="text" class="MuiInputBase-input MuiInput-input" value=""></div></div></div><div class="jss10978"><label class="MuiFormLabel-root">Choose One Option</label><div class="MuiFormGroup-root jss10979" role="radiogroup" meta="[object Object]" valueselected=""><label class="MuiFormControlLabel-root"><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiRadio-root MuiRadio-colorSecondary MuiIconButton-colorSecondary" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028" name="radio" type="radio" value="option1"><div class="jss11060"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path></svg><svg class="MuiSvgIcon-root jss11061" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"></path></svg></div></span><span class="MuiTouchRipple-root"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">Option 1</span></label><label class="MuiFormControlLabel-root"><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiRadio-root MuiRadio-colorSecondary MuiIconButton-colorSecondary" aria-disabled="false"><span class="MuiIconButton-label"><input class="jss11028" name="radio" type="radio" value="option2"><div class="jss11060"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path></svg><svg class="MuiSvgIcon-root jss11061" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"></path></svg></div></span><span class="MuiTouchRipple-root"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">Option 2</span></label></div></div><div><div class="MuiFormControl-root jss10977"><label class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated" data-shrink="false" for="selection">Selection</label><div class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl" meta="[object Object]"><div class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input" tabindex="0" role="button" aria-haspopup="listbox" aria-labelledby="mui-component-select-selection" id="mui-component-select-selection"><span>&ZeroWidthSpace;</span></div><input name="selection" aria-hidden="true" tabindex="-1" class="MuiSelect-nativeInput" placeholder="Selection" value=""><svg class="MuiSvgIcon-root MuiSelect-icon" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"></path></svg></div></div></div><div class="jss10978"><label class="MuiFormLabel-root">Toggle Input</label><div class="jss10979"><label class="MuiFormControlLabel-root"><span class="MuiSwitch-root"><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiSwitch-switchBase MuiSwitch-colorSecondary" aria-disabled="false" meta="[object Object]"><span class="MuiIconButton-label"><input class="jss11028 MuiSwitch-input" name="onof" type="checkbox" value=""><span class="MuiSwitch-thumb"></span></span><span class="MuiTouchRipple-root"></span></span><span class="MuiSwitch-track"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">On/OF Switch</span></label><label class="MuiFormControlLabel-root"><span class="MuiButtonBase-root MuiIconButton-root jss11025 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary" aria-disabled="false" meta="[object Object]"><span class="MuiIconButton-label"><input class="jss11028" name="checkbox" type="checkbox" data-indeterminate="false" value=""><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"></path></svg></span><span class="MuiTouchRipple-root"></span></span><span class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1">Checkbox</span></label></div></div><div class="jss10977"><div class="MuiFormControl-root MuiTextField-root jss10977"><label class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated" data-shrink="false">Textarea</label><div class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"><textarea aria-invalid="false" name="textarea" placeholder="Textarea" rows="4" class="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"></textarea></div></div></div></section><div class="jss11047"><button class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedSecondary" tabindex="0" type="submit"><span class="MuiButton-label">Submit</span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiButton-root MuiButton-text Mui-disabled Mui-disabled" tabindex="-1" type="button" disabled=""><span class="MuiButton-label">Reset</span></button></div></form></div></section></div><div><div class="MuiToolbar-root MuiToolbar-regular jss11074 MuiToolbar-gutters"><div class="jss11075"><h6 class="MuiTypography-root MuiTypography-h6">Title of Table</h6></div><div class="jss11066"></div><div class="jss11073"><button class="MuiButtonBase-root MuiButton-root MuiButton-contained jss11076 MuiButton-containedSecondary" tabindex="0" type="button" title="Add Item"><span class="MuiButton-label"><svg class="MuiSvgIcon-root jss11077" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></div></div><div class="jss11064"><table class="MuiTable-root mVd-6DxWYz2MfjxKU4Ma-Q== jss11071 jss11082"><thead class="MuiTableHead-root"><tr class="MuiTableRow-root MuiTableRow-head"><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Text Field</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Email Field</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="80">Radio</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="80">Selection</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="80">On/Of</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="80">Checkbox</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col" width="auto">Text Area</th><th class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingNone" scope="col">Action</th></tr></thead><tbody class="MuiTableBody-root"><tr><td class="MuiTableCell-root MuiTableCell-body jss11095">Just write</td><td class="MuiTableCell-root MuiTableCell-body jss11095">mail@company.com</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option2</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option1</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">true</td><td class="MuiTableCell-root MuiTableCell-body jss11095">Lorem ipsum dolor sit amet</td><td class="MuiTableCell-root MuiTableCell-body jss11095"><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr><td class="MuiTableCell-root MuiTableCell-body jss11095">Some text</td><td class="MuiTableCell-root MuiTableCell-body jss11095">mail@material.com</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option2</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option2</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">Lorem ipsum dolor sit amet</td><td class="MuiTableCell-root MuiTableCell-body jss11095"><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr><td class="MuiTableCell-root MuiTableCell-body jss11095">Because it is a TextField</td><td class="MuiTableCell-root MuiTableCell-body jss11095">mail@admin.com</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option1</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option3</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">Lorem ipsum dolor sit amet</td><td class="MuiTableCell-root MuiTableCell-body jss11095"><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr><td class="MuiTableCell-root MuiTableCell-body jss11095">And editable</td><td class="MuiTableCell-root MuiTableCell-body jss11095">mail@example.com</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option1</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option1</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">true</td><td class="MuiTableCell-root MuiTableCell-body jss11095">Lorem ipsum dolor sit amet</td><td class="MuiTableCell-root MuiTableCell-body jss11095"><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr><td class="MuiTableCell-root MuiTableCell-body jss11095">You can write</td><td class="MuiTableCell-root MuiTableCell-body jss11095">mail@material.com</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option2</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option2</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">true</td><td class="MuiTableCell-root MuiTableCell-body jss11095">Lorem ipsum dolor sit amet</td><td class="MuiTableCell-root MuiTableCell-body jss11095"><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr><tr><td class="MuiTableCell-root MuiTableCell-body jss11095">Everything You want here</td><td class="MuiTableCell-root MuiTableCell-body jss11095">mail@everything.com</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option1</td><td class="MuiTableCell-root MuiTableCell-body jss11095">option3</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">false</td><td class="MuiTableCell-root MuiTableCell-body jss11095">Lorem ipsum dolor sit amet</td><td class="MuiTableCell-root MuiTableCell-body jss11095"><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Edit"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.75 7L14 3.25l-10 10V17h3.75l10-10zm2.96-2.96c.39-.39.39-1.02 0-1.41L18.37.29a.9959.9959 0 0 0-1.41 0L15 2.25 18.75 6l1.96-1.96z"></path><path fill-opacity=".36" d="M0 20h24v4H0z"></path></svg></span><span class="MuiTouchRipple-root"></span></button><button class="MuiButtonBase-root MuiIconButton-root jss11094" tabindex="0" type="button" aria-label="Delete"><span class="MuiIconButton-label"><svg class="MuiSvgIcon-root" focusable="false" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></span><span class="MuiTouchRipple-root"></span></button></td></tr></tbody></table></div></div></div></div></div></div></section></div></div></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////FOOOTER/////////////
+
+
+
+import React from "react";
+import { AddLocationAltOutlined, EmailOutlined, PhoneIphone } from "@mui/icons-material";
+import "./Footer.css";
+import { Link } from "react-router-dom";
+
+export const navLinks = [
+  { text: "Home", path: "/" },
+  { text: "About", path: "/about" },
+  { text: "Services", path: "/" },
+  { text: "All CSAs", path: "/csas" },
+  { text: "Terms and Policy", path: "/terms" },
+  { text: "FAQ", path: "/faq" },
+  { text: "Login", path: "/login" },
+];
+function Footer() {
+  return (
+    <>
+      <footer>
+        <div>
+          {navLinks.map((link, index) => (
+            <Link key={index} to={link.path}>
+              <p>{link.text}</p>
+            </Link>
+          ))}
+        </div>
+        <div>
+          <h3>Contact Us</h3>
+          <p>
+            <PhoneIphone />
+            +251985187059
+          </p>
+          <p>
+            <EmailOutlined />
+            example@gmail.com
+          </p>
+          <p>
+            <AddLocationAltOutlined />
+             Bishoftu Oromia, Ethiopia
+          </p>
+        </div>
+      </footer>
+      <p className="right">@ All rights reserved</p>
+    </>
+  );
+}
+
+export default Footer;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React from "react";
+import "./Blog.css"
+const Blog = () => {
+  return (
+    <div>
+      <div class="blog-area ptb-80">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6">
+              <div class="single-blog-post">
+                <div class="blog-image">
+                  <a href="/blog/blog-details/">
+                    <img
+                      alt="image"
+                      loading="lazy"
+                      width="860"
+                      height="700"
+                      decoding="async"
+                      data-nimg="1"
+                      src="/Ethiopia.jpg"
+                      style={{color: "transparent;"}}
+                    />
+                  </a>
+                  <div class="date flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>{" "}
+                    March 15, 2022
+                  </div>
+                </div>
+                <div class="blog-post-content">
+                  <h3>
+                    <a href="/blog/blog-details/">
+                      The Security Risks of Changing Package Owners
+                    </a>
+                  </h3>
+                  <span>
+                    By <a href="/blog/#">Admin</a>
+                  </span>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis ipsum suspendisse ultrices gravida.
+                  </p>
+                  <a class="read-more-btn" href="/blog/blog-details/">
+                    Read More{" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+              <div class="single-blog-post">
+                <div class="blog-image">
+                  <a href="/blog/blog-details/">
+                    <img
+                      alt="image"
+                      loading="lazy"
+                      width="860"
+                      height="700"
+                      decoding="async"
+                      data-nimg="1"
+                      src="/Ethiopia.jpg"
+                      style={{color: "transparent;"}}
+                    />
+                  </a>
+                  <div class="date flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>{" "}
+                    March 17, 2022
+                  </div>
+                </div>
+                <div class="blog-post-content">
+                  <h3>
+                    <a href="/blog/blog-details/">
+                      Tips to Protecting Your Business and Family
+                    </a>
+                  </h3>
+                  <span>
+                    By <a href="/blog/#">Smith</a>
+                  </span>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis ipsum suspendisse ultrices gravida.
+                  </p>
+                  <a class="read-more-btn" href="/blog/blog-details/">
+                    Read More{" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+              <div class="single-blog-post">
+                <div class="blog-image">
+                  <a href="/blog/blog-details/">
+                    <img
+                      alt="image"
+                      loading="lazy"
+                      width="860"
+                      height="700"
+                      decoding="async"
+                      data-nimg="1"
+                      src="/bishoftu.jpg"
+                      style={{color: "transparent;"}}
+                    />
+                  </a>
+                  <div class="date flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>{" "}
+                    March 19, 2022
+                  </div>
+                </div>
+                <div class="blog-post-content">
+                  <h3>
+                    <a href="/blog/blog-details/">
+                      Protect Your Workplace from Cyber Attacks
+                    </a>
+                  </h3>
+                  <span>
+                    By <a href="/blog/#">John</a>
+                  </span>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis ipsum suspendisse ultrices gravida.
+                  </p>
+                  <a class="read-more-btn" href="/blog/blog-details/">
+                    Read More{" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+              <div class="single-blog-post">
+                <div class="blog-image">
+                  <a href="/blog/blog-details/">
+                    <img
+                      alt="image"
+                      loading="lazy"
+                      width="860"
+                      height="700"
+                      decoding="async"
+                      data-nimg="1"
+                      src="/Ethiopia.jpg"
+                      style={{color: "transparent;"}}
+                    />
+                  </a>
+                  <div class="date flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>{" "}
+                    March 15, 2022
+                  </div>
+                </div>
+                <div class="blog-post-content">
+                  <h3>
+                    <a href="/blog/blog-details/">
+                      Here are the 5 most telling signs of micromanagement
+                    </a>
+                  </h3>
+                  <span>
+                    By <a href="/blog/#">Admin</a>
+                  </span>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis ipsum suspendisse ultrices gravida.
+                  </p>
+                  <a class="read-more-btn" href="/blog/blog-details/">
+                    Read More{" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+              <div class="single-blog-post">
+                <div class="blog-image">
+                  <a href="/blog/blog-details/">
+                    <img
+                      alt="image"
+                      loading="lazy"
+                      width="860"
+                      height="700"
+                      decoding="async"
+                      data-nimg="1"
+                      src="/bishoftu.jpg"
+                      style={{color: "transparent;"}}
+                    />
+                  </a>
+                  <div class="date flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>{" "}
+                    March 17, 2022
+                  </div>
+                </div>
+                <div class="blog-post-content">
+                  <h3>
+                    <a href="/blog/blog-details/">
+                      I Used The Web For A Day On A 50 MB Budget
+                    </a>
+                  </h3>
+                  <span>
+                    By <a href="/blog/#">Smith</a>
+                  </span>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis ipsum suspendisse ultrices gravida.
+                  </p>
+                  <a class="read-more-btn" href="/blog/blog-details/">
+                    Read More{" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+              <div class="single-blog-post">
+                <div class="blog-image">
+                  <a href="/blog/blog-details/">
+                    <img
+                      alt="image"
+                      loading="lazy"
+                      width="860"
+                      height="700"
+                      decoding="async"
+                      data-nimg="1"
+                      src="/kvo.png"
+                      style={{color: "transparent;"}}
+                      className="h-52"
+                    />
+                  </a>
+                  <div class="date flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>{" "}
+                    March 19, 2022
+                  </div>
+                </div>
+                <div class="blog-post-content">
+                  <h3>
+                    <a href="/blog/blog-details/">
+                      Making Peace With The Feast Or Famine Of Freelancing
+                    </a>
+                  </h3>
+                  <span>
+                    By <a href="/blog/#">John</a>
+                  </span>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis ipsum suspendisse ultrices gravida.
+                  </p>
+                  <a class="read-more-btn" href="/blog/blog-details/">
+                    Read More{" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-12 col-md-12">
+              <div class="pagination-area">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                      <a class="page-link" href="#">
+                        Prev
+                      </a>
+                    </li>
+                    <li class="page-item active">
+                      <a class="page-link" href="#">
+                        1
+                      </a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">
+                        2
+                      </a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">
+                        3
+                      </a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="#">
+                        Next
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Blog; image of bolg or news  Hight should be fixed not up and down based on image height should be appropriate height 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+////each report/////////////////////////////////
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
+const EachCso = () => {
+  const { id } = useParams();
+  const [report, setReport] = useState([]);
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [date, setDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const reportsPerPage = 5; // Adjust as needed
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  useEffect(() => {
+    const fetchCsoData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/reports/report/${id}`);
+        if (!response.ok) {
+          console.error("Failed to fetch CSO data:", response.status);
+          return;
+        }
+        const data = await response.json();
+        setReport(data.data || []);
+        console.log(report)
+        console.log(data)
+
+
+      } catch (error) {
+        console.error("Error fetching CSO data:", error);
+      }
+    };
+    fetchCsoData();
+  }, [id]);
+
+  // if (!report.length) return <p>Loading...</p>;
+
+  // Filtered reports based on user input
+  const filteredReports = Array.isArray(report)
+  ? report.filter((item) => {
+      const matchesFilter = filter === "all" || item.reportType.toLowerCase() === filter.toLowerCase();
+      const matchesSearch = item.reportName.toLowerCase().includes(search.toLowerCase());
+      const matchesDate = date ? item.date.includes(date) : true;
+      return matchesFilter && matchesSearch && matchesDate;
+    })
+  : [];
+
+  // const filteredReports = Array.isArray(report)
+  // ? report.filter((item) =>
+  //     item.reportName?.toLowerCase().includes(searchTerm.toLowerCase())
+  //   )
+  // : [];
+  
+  // Pagination logic
+  const indexOfLastReport = currentPage * reportsPerPage;
+  const indexOfFirstReport = indexOfLastReport - reportsPerPage;
+  const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport);
+
+  const totalPages = Math.ceil(filteredReports.length / reportsPerPage);
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleView = (report) => {
+    const { reportType, id: reportId } = report;
+    if (reportType === "yearly") {
+      navigate(`/admin/yearly_Report/${reportId}`);
+    } else if (reportType === "quarterly") {
+      navigate(`/admin/quarterly_report/${reportId}`);
+    }
+  };
+
+  return (
+    <div className="bg-gray-100 p-2 lg:p-6 md:p-4">
+      <div className="bg-white p-2 lg:p-6 md:p-4 rounded-lg shadow-lg">
+        <h2 className="text-xl font-serif md:text-2xl lg:text-2xl font-bold text-gray-500">
+          CSO Details
+        </h2>
+        <p className="text-gray-600 mb-4">ID: {id}</p>
+
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          {["all", "yearly", "quarterly", "proposal", "projects", "other"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`py-2 px-4 rounded ${
+                filter === type
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+              } transition`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Search and Date Inputs */}
+        <div className="flex space-x-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search by Name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="p-2 border border-gray-300 rounded w-1/3"
+          />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="p-2 border border-gray-300 rounded"
+          />
+        </div>
+
+        {/* Reports Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border px-4 py-2">Name</th>
+                <th className="border px-4 py-2">Type</th>
+                <th className="border px-4 py-2">Date</th>
+                <th className="border px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentReports.length > 0 ? (
+                currentReports.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-100">
+                    <td className="border px-4 py-2">{item.reportName}</td>
+                    <td className="border px-4 py-2">{item.reportType}</td>
+                    <td className="border px-4 py-2">{item.date}</td>
+                    <td className="border px-4 py-2">
+                      <button
+                        onClick={() => handleView(item)}
+                        className="bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-4">
+                    No reports found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-between mt-4">
+          <button
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+            className={`py-2 px-4 rounded ${
+              currentPage === 1 ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+            className={`py-2 px-4 rounded ${
+              currentPage === totalPages ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EachCso;
+
+
+
+
+
+
+
+
+/////private router
+
+
+
+// import React from "react";
+// import { Navigate, Route } from "react-router-dom";
+// import {jwtDecode} from "jwt-decode";
+// import Cookies from "js-cookie"; // To handle cookies
+
+// // PrivateRoute component checks user role
+// const PrivateRoute = ({ element, roleRequired, ...rest }) => {
+//   // const role = localStorage.getItem("role");
+//   const token = localStorage.getItem("token");
+//   // const token = Cookies.get("token");
+
+  
+//   if (!token) {
+//     return <Navigate to="/user/login" />; // Redirect to login if not logged in
+//   }
+//   const decoded = jwtDecode(token);
+//   if (decoded.role !== roleRequired) {
+//     return decoded.role === 'admin' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/user/dashboard" />; 
+//   }
+
+//   return element;
+// };
+
+// export default PrivateRoute;
+
+// // import { Navigate } from "react-router-dom";
+// // import {jwtDecode} from "jwt-decode";
+
+// // const PrivateRoute = ({ children, role }) => {
+// //   const token = localStorage.getItem("token");
+// //   if (!token) {
+// //     return <Navigate to="/login" />;
+// //   }
+
+// //   const decoded = jwtDecode(token);
+// //   if (decoded.role !== role) {
+// //     return <Navigate to="/unauthorized" />;
+// //   }
+
+// //   return children;
+// // };
+
+// // export default PrivateRoute;

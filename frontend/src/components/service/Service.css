@@ -1,0 +1,122 @@
+
+.single-services-box .icon {
+    text-align: center;
+    width: 55px;
+    height: 55px;
+    line-height: 55px;
+    background: #cdf1d8;
+    border-radius: 50%;
+    color: #44ce6f;
+    transition: .5s;
+    font-size: 0px;
+}
+
+.single-services-box {
+    position: relative;
+    background: #fff;
+    padding: 30px 25px;
+    margin-bottom: 30px;
+    border-radius: 5px;
+    transition: .5s;
+}
+.single-services-box:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 2px 48px 0 rgba(0, 0, 0, .08);
+}
+.single-services-box:before {
+    left: 0;
+}
+
+.single-services-box:after, .single-services-box:before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 4px;
+    background: #44ce6f;
+    opacity: 0;
+    visibility: hidden;
+    bottom: 0;
+    transition: .5s;
+}
+.single-services-box:after {
+    right: 0;
+}
+.single-services-box:hover .icon {
+    background: #44ce6f;
+    color: #fff;
+}
+.single-services-box:hover:after, .single-services-box:hover:before {
+    opacity: 1;
+    visibility: visible;
+    width: 50%;
+}
+.bg-f9f6f6 {
+    background-color: #f9f6f6;
+}
+
+.single-services-box h3 {
+    font-size: 18px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+.section-title {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+
+.services-area-two .containers {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    width: 100%;
+    padding-right: calc(var(--bs-gutter-x)* .5);
+    padding-left: calc(var(--bs-gutter-x)* .5);
+    margin-right: auto;
+    margin-left: auto;
+}
+
+
+
+
+
+@media (min-width: 576px) {
+    .containers, .container-sm {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .containers, .container-md, .container-sm {
+        max-width: 720px;
+    }
+}
+@media (min-width: 992px) {
+    .containers, .container-lg, .container-md, .container-sm {
+        max-width: 960px;
+    }
+}
+@media (min-width: 1200px) {
+    .containers, .container-lg, .container-md, .container-sm, .container-xl {
+        max-width: 1140px;
+    }
+}
+
+
+@media (min-width: 576px) {
+    .col-sm-6 {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+}
+@media (min-width: 992px) {
+    .col-lg-4 {
+        flex: 0 0 auto;
+        width: 33.33333333%;
+    }
+}
+
+
+
+/* .pt-80, .ptb-80 {
+    padding-top: 10px;
+} */

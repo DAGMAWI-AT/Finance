@@ -1,0 +1,210 @@
+/* Media Queries for Mobile View */
+@media only screen and (max-width: 767px) {
+    .page-title-area {
+        background-position: 50%;
+        padding-top: 150px;
+        padding-bottom: 65px;
+    }
+
+    .shape1, .shape10, .shape2, .shape3, .shape4, .shape5, .shape6, .shape7, .shape8, .shape9 {
+        display: none;
+    }
+
+    .about-image {
+        margin-bottom: 45px;
+    }
+
+    .ptb-80 {
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+    .single-banner-boxes {
+        padding: 20px 20px 20px 85px;
+    }
+
+    .single-banner-boxes .icon {
+        width: 50px;
+        height: 50px;
+        left: 15px;
+        top: 20px;
+        line-height: 50px;
+    }
+
+    .single-banner-boxes h3 {
+        margin-bottom: 10px;
+        font-size: 17px;
+    }
+
+    .page-title-area .shape7 {
+        left: 15%;
+        top: 29%;
+        display: block;
+    }
+
+    .page-title-area .shape8 {
+        top: auto;
+        left: 15px;
+        display: block;
+        bottom: 20px;
+    }
+}
+
+/* Page Title Area */
+.page-title-area {
+    position: relative;
+    z-index: 1;
+    background: transparent url(/public/banner-bg1.jpg) 100% 0 no-repeat;
+    padding-top: 190px;
+    padding-bottom: 100px;
+    text-align: center;
+}
+
+.page-title-area h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #0e314c;
+}
+
+/* Shape Animations */
+.shape1, .shape2, .shape3, .shape4, .shape5, .shape6, .shape7, .shape8 {
+    position: absolute;
+    z-index: -1;
+}
+
+.shape1 {
+    top: 20%;
+    left: 30px;
+    animation: rotate3d 4s linear infinite;
+    opacity: 0.4;
+}
+
+.shape2 {
+    top: 60%;
+    left: 15%;
+}
+
+.shape3 {
+    bottom: 15%;
+    left: 25%;
+    animation: animationFramesOne 15s linear infinite;
+}
+
+.shape4 {
+    bottom: 15%;
+    right: 25%;
+    animation: animationFramesOne 20s linear infinite;
+}
+
+.shape5 {
+    top: 10%;
+    right: 5%;
+    animation: movebounce 5s linear infinite;
+    opacity: 0.2;
+}
+
+.shape6 {
+    top: 40%;
+    right: 10%;
+}
+
+.shape7 {
+    top: 15%;
+    left: 25%;
+    animation: animationFramesOne 20s linear infinite;
+}
+
+.shape8 {
+    top: 15%;
+    right: 10%;
+}
+
+/* Animations */
+@keyframes animationFramesOne {
+    0% { transform: translate(0) rotate(0deg); }
+    20% { transform: translate(73px, -1px) rotate(36deg); }
+    40% { transform: translate(141px, 72px) rotate(72deg); }
+    60% { transform: translate(83px, 122px) rotate(108deg); }
+    80% { transform: translate(-40px, 72px) rotate(144deg); }
+    100% { transform: translate(0) rotate(0deg); }
+}
+
+@keyframes movebounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(20px); }
+}
+
+/* General Layout */
+.d-table {
+    width: 100%;
+    height: 100%;
+    display: table !important;
+}
+
+.d-table-cell {
+    vertical-align: middle;
+    display: table-cell !important;
+}
+
+/* Containers */
+.container {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Banner Box Styles */
+.single-banner-boxes {
+    margin-bottom: 30px;
+    border: 1px dashed #687b6f;
+    position: relative;
+    border-radius: 5px;
+    padding: 25px 25px 25px 95px;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: 0.5s;
+    z-index: 1;
+}
+
+.single-banner-boxes .icon {
+    display: inline-block;
+    text-align: center;
+    width: 55px;
+    height: 55px;
+    position: absolute;
+    left: 20px;
+    top: 25px;
+    line-height: 55px;
+    background: #cdf1d8;
+    border-radius: 50%;
+    color: #44ce6f;
+    transition: 0.5s;
+}
+
+.single-banner-boxes h3 {
+    color: #fff;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.single-banner-boxes p {
+    color: #dadada;
+    transition: 0.5s;
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* Fade Up Animation */
+[data-aos="fade-up"] {
+    transform: translate3d(0, 100px, 0);
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+[data-aos].aos-animate {
+    opacity: 1;
+    transform: translateZ(0);
+}

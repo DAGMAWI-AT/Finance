@@ -1,0 +1,346 @@
+/* General Navbar Styling */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    height: 60px;
+    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.1);
+    background-color: #f0f8ff;
+    color: #333;
+    transition: all 0.3s ease;
+  }
+  
+  .navbar.dark {
+    background-color: #333;
+    color: #f5f5f5;
+  }
+  
+  .navbar .navbar-left,
+  .navbar .navbar-center,
+  .navbar .navbar-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Left Section */
+  /* .logo {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-left: 10px;
+  } */
+  
+  .menu-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .hamburger {
+    width: 20px;
+    height: 2px;
+    background: #333;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+  }
+  
+  .navbar.dark .hamburger {
+    background: #f5f5f5;
+  }
+  
+  /* Center Section */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: #f0f8ff;
+    /* padding: 5px; */
+    /* border-radius: 20px; */
+    width: 300px;
+  }
+  
+  .search-bar:hover {
+    background: #ccc;
+  }
+  
+  .search-icon {
+    /* margin-right: 10px; */
+    color: #666;
+  }
+  
+  .search-input {
+    border: none;
+    outline: none;
+    background: none;
+    width: 100%;
+    /* color: inherit; */
+  }
+  @media screen and (max-width:768px) {
+    .search-input {
+      border: none;
+      outline: none;
+      background: none;
+      width: 50%;
+      /* color: inherit; */
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: #ddd;
+      padding: 5px;
+      border-radius: 20px;
+      margin: 10px;
+      width: 150px;
+    }
+  }
+  /* Right Section */
+  .navbar-right .icon {
+    font-size: 1.2em;
+    margin: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .navbar-right .icon:hover {
+    transform: scale(1.1);
+  }
+  
+  .user-icon {
+    font-size: 1.5em;
+  }
+  
+  .dark-mode-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 0px;
+  }
+  
+  .dark-mode-toggle svg {
+    font-size: 1.2em;
+  }
+  
+
+  .dropdown-menu {
+    position: absolute;
+    right: 10px;
+    top: 50px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    width: 160px;
+    z-index: 1000;
+  }
+  
+  .dropdown-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+  }
+  
+  .dropdown-menu ul li {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .dropdown-menu ul li:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .profile-menu {
+    position: relative;
+    display: inline-block;
+  }
+  
+
+  /* ////////// */
+  @media screen and (max-width: 768px) {
+  .navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  height: 60px;
+  background-color: #f0f8ff;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar.dark {
+  background-color: #333;
+  color: #f5f5f5;
+}
+
+.navbar .menu-toggle {
+  display: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.navbar .menu-toggle .hamburger {
+  width: 25px;
+  height: 3px;
+  background-color: #333;
+  margin: 5px 0;
+  transition: all 0.3s ease;
+}
+
+.navbar.dark .hamburger {
+  background-color: #f5f5f5;
+}
+
+.navbar .search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f0f8ff;
+  padding: 5px 10px;
+  border-radius: 20px;
+  width: 300px;
+}
+
+.navbar .search-bar input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  margin-left: 10px;
+}
+
+.navbar .navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.navbar .icon {
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+/* Responsive Design */
+
+  .navbar .menu-toggle {
+    display: block;
+  }
+
+  .navbar .search-bar {
+    width: 150px;
+  }
+
+  .navbar .menu {
+    display: none;
+  }
+
+  .navbar.show .menu {
+    display: flex;
+    flex-direction: column;
+    background-color: #f0f8ff;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 100%;
+    padding: 10px;
+  }
+}
+
+
+
+.notification-wrapper {
+  position: relative;
+}
+
+.notifications-dropdown {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.notifications-dropdown ul {
+  list-style: none;
+  padding: 10px;
+  margin: 0;
+  box-shadow: #333;
+
+}
+
+.notifications-dropdown li {
+  padding: 5px 10px;
+  border-bottom: 1px solid #aa9d9d;
+  margin: 5px;
+  font-family: serif;
+}
+
+.notifications-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.notifications-dropdown p {
+  /* padding: 10px; */
+  /* text-align: center; */
+  color: #999;
+}
+
+/* Add this to your Navbar.css */
+.notification-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: red;
+  color: white;
+  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 16px;
+}
+
+.notifications-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.notifications-dropdown ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notifications-dropdown li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.notifications-dropdown li.read {
+  background-color: #f0f0f0;
+}
+
+.notifications-dropdown li.unread {
+  font-weight: bold;
+  background-color: #fdfdfe;
+}
+
+.notifications-dropdown li:hover {
+  background-color: #f1f1f1;
+}

@@ -1,0 +1,14 @@
+/* Footer Base Styles */
+.footer {
+    background-color: #333; /* Light background */
+    color: #333; /* Dark text */
+    text-align: center;
+    font-size: 0.8rem; /* Small font size */
+    padding: 0.5rem;
+    position: fixed; /* Stick to the bottom */
+    bottom: 0;
+    width: 100%; /* Full width */
+    border-top: 1px solid #ddd; /* Optional: subtle border at the top */
+    z-index: 10; /* Ensure it stays on top */
+  }
+  

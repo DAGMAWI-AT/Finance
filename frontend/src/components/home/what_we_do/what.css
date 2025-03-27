@@ -1,0 +1,130 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* .container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 90px;
+  } */
+  
+  .section-title {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  
+  .section-title h2 {
+    font-size: 36px;
+    color: #2a2a2a;
+    margin-bottom: 10px;
+  }
+  
+  .section-title .bar {
+    width: 60px;
+    height: 4px;
+    background-color: #00b5ad;
+    margin: 10px auto;
+  }
+  
+  .section-title p {
+    color: #707070;
+    font-size: 16px;
+  }
+  
+  /* .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  } */
+  
+  .col-lg-4 {
+    width: 33.33%;
+    padding: 15px;
+  }
+  
+  .single-what-we-do-box {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .single-what-we-do-box:hover {
+    transform: translateY(-10px);
+  }
+  
+  .icon {
+    font-size: 40px;
+    color: #00b5ad;
+    margin-bottom: 20px;
+  }
+  
+  h3 {
+    font-size: 24px;
+    color: #2a2a2a;
+    margin-bottom: 15px;
+  }
+  
+  h3 a {
+    color: #2a2a2a;
+    text-decoration: none;
+  }
+  
+  h3 a:hover {
+    color: #00b5ad;
+  }
+  
+  p {
+    color: #707070;
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .link {
+    display: block;
+    color: #00b5ad;
+    font-size: 14px;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  
+  .link:hover {
+    color: #2a2a2a;
+  }
+  
+  .read-more-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    color: #00b5ad;
+    text-decoration: none;
+    margin-top: 20px;
+  }
+  
+  .read-more-btn svg {
+    margin-left: 5px;
+  }
+  
+  .read-more-btn:hover {
+    color: #2a2a2a;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 991px) {
+    .col-lg-4 {
+      width: 50%;
+    }
+  }
+  
+  @media (max-width: 767px) {
+    .col-lg-4 {
+      width: 100%;
+    }
+  }
+  

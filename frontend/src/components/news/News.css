@@ -1,0 +1,146 @@
+
+
+/* Snow Animation */
+.news_hero{
+    background: url("/public/banner-bg1.jpg");
+    overflow: hidden;
+}
+@keyframes snow {
+    0% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    width: 3px;
+    height: 10px;
+    background-color: #fff;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: snow linear infinite;
+}
+
+.snowflake:nth-child(odd) {
+    animation-duration: 10s;
+}
+
+.snowflake:nth-child(even) {
+    animation-duration: 12s;
+}
+
+.snowflake:nth-child(odd) {
+    animation-delay: -5s;
+}
+
+.snowflake:nth-child(even) {
+    animation-delay: -3s;
+}
+
+/* Hero Section */
+
+
+/* Hero Content */
+.hero-content {
+    z-index: 10; /* Ensure content appears above snowflakes */
+    color: #fff; /* Ensure the text is visible against the dark background */
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.cta-button {
+    background-color: #ff6f61;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #e65c50;
+}
+
+.cta-button:focus {
+    outline: 3px solid #ff6f61;
+}
+
+/* News Section */
+.container {
+    margin-top: 40px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.bg-white {
+    background-color: #fff;
+}
+
+.border {
+    border: 1px solid #ddd;
+}
+
+.rounded-lg {
+    border-radius: 10px;
+}
+
+.shadow-lg {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hover\:shadow-xl:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.text-4xl {
+    font-size: 2.25rem;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.text-gray-800 {
+    color: #2d3748;
+}
+
+.text-gray-700 {
+    color: #4a5568;
+}
+
+.text-gray-500 {
+    color: #a0aec0;
+}
+
+.text-blue-500 {
+    color: #3182ce;
+}
+
+.hover\:underline:hover {
+    text-decoration: underline;
+}
+
+.mt-8 {
+    margin-top: 2rem;
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
