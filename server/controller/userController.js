@@ -34,19 +34,42 @@ const loginLimite = rateLimit({
 
 
 // Handle login
-// Example in Node.js Express
-const login = async (req, res) => {
+async function login(req, res) {
   try {
     const { registrationId, email, password } = req.body;
-    // ... (fetch user from database and validate credentials)
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-    if (!(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ success: false, message: "Invalid password" });
+    const [users] = await pool.query(
+      `SELECT * FROM users WHERE registrationId = ? AND email = ?`,
+      [registrationId, email]
+    );
+
+    if (!users.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No user found with the provided registration ID or email.",
+      });
     }
 
-    // Generate token
+    const user = users[0];
+
+    if (user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is inactive. Please contact support.",
+      });
+    }
+
+    // Verify password (compare plain-text password with hashed password)
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password.",
+      });
+    }
+
+    // Generate JWT token
     const token = jwt.sign(
       {
         id: user.id,
@@ -70,10 +93,9 @@ const login = async (req, res) => {
     return res.json({ success: true, token }); // Return token in response body
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
-};
-
+}
 
 // async function me(req, res){
 //   const token = req.cookies.token;
