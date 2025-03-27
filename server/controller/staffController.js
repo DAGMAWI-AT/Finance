@@ -180,10 +180,11 @@ async function loginStaff(req, res) {
       `SELECT * FROM staff WHERE registrationId = ? AND email = ?`,
       [registrationId, email]
     );
+
     if (!staff.length) {
       return res.status(404).json({
         success: false,
-        message: "Invalid credentials",
+        message: "No user found with the provided registration ID or email.",
       });
     }
 
@@ -192,56 +193,55 @@ async function loginStaff(req, res) {
     if (user.status !== "active") {
       return res.status(403).json({
         success: false,
-        message: "Account inactive. Contact support.",
+        message: "Your account is inactive. Please contact support.",
       });
     }
-
     if (user.email_verified !== 1) {
       return res.status(403).json({
         success: false,
-        message: "Please verify your email first",
+        message: "Your account is unverified. pleas verify your account by email, Please contact support",
       });
     }
 
+    // Verify password (compare plain-text password with hashed password)
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid password.",
       });
     }
 
+    // Generate JWT token
     const token = jwt.sign(
       {
         id: user.id,
         registrationId: user.registrationId,
-        role: user.role
+        role: user.role,
       },
       secretKey,
       { expiresIn: "1h" }
     );
 
-    // Updated cookie options for cross-origin
+    // Cookie options
     const cookieOptions = {
-      httpOnly: true,
-      secure: true, // Must be true for HTTPS
-      sameSite: 'none', // Required for cross-site
-      maxAge: 60 * 60 * 1000,
-      path: '/'
+      httpOnly: true, // Prevent access by JavaScript
+      secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
+      sameSite: "Strict", // Prevent CSRF
+      maxAge: 60 * 60 * 1000, // 1 hour
+      path: "/", // Accessible across the entire site
     };
 
+    // Set cookie
     res.cookie("token", token, cookieOptions);
-    return res.json({ 
-      success: true,
-      role: user.role // Include role in response
-    });
-    
+
+    // Return success response
+    return res.json({ success: true });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Internal Server Error" 
-    });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 // Verify Token (for /me route)
