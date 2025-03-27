@@ -45,7 +45,7 @@ async function login(req, res) {
     if (!users.length) {
       return res.status(404).json({
         success: false,
-        message: "No user found with the provided registration ID or email.",
+        message: "No user found with the provided credentials",
       });
     }
 
@@ -58,10 +58,7 @@ async function login(req, res) {
       });
     }
 
-    // Verify password (compare plain-text password with hashed password)
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
-
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -70,30 +67,60 @@ async function login(req, res) {
     }
 
     // Generate JWT token
-   // Inside your login controller:
-const token = jwt.sign(
-  {
-    id: user.id,
-    registrationId: user.registrationId,
-    userId: user.userId,
-    role: user.role,
-  },
-  process.env.JWT_secretKey, // Ensure this environment variable is set correctly
-  { expiresIn: "1h" }
-);
+    const token = jwt.sign(
+      {
+        id: user.id,
+        registrationId: user.registrationId,
+        userId: user.userId,
+        role: user.role,
+      },
+      secretKey,
+      { expiresIn: "1h" }
+    );
 
-res.cookie("token", token, {
-  httpOnly: true, // This prevents client-side JS from accessing the cookie
-  secure: process.env.NODE_ENV === "production", // Use HTTPS in production
-  sameSite: "Strict", // Helps protect against CSRF
-  maxAge: 60 * 60 * 1000, // 1 hour
-  path: "/", // Cookie available to the entire site
-});
-res.json({ success: true });
-
+    // Return token in response (not as cookie)
+    return res.json({ 
+      success: true,
+      token, // Send token directly in response
+      user: {
+        id: user.id,
+        registrationId: user.registrationId,
+        role: user.role,
+        email: user.email
+      }
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}
+
+async function me(req, res) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: No token found",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    res.json({
+      success: true,
+      role: decoded.role,
+      registrationId: decoded.registrationId,
+      userId: decoded.userId,
+      id: decoded.id,
+    });
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: Invalid token",
+    });
   }
 }
 
@@ -122,32 +149,32 @@ res.json({ success: true });
 //   }
 // };
 
-async function me(req, res) {
-  const token = req.cookies.token;
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: No token found",
-    });
-  }
+// async function me(req, res) {
+//   const token = req.cookies.token;
+//   if (!token) {
+//     return res.status(401).json({
+//       success: false,
+//       message: "Unauthorized: No token found",
+//     });
+//   }
 
-  try {
-    const decoded = jwt.verify(token, secretKey);
-    res.json({
-      success: true,
-      role: decoded.role,
-      registrationId: decoded.registrationId,
-      userId: decoded.userId,
-      id: decoded.id,
-    });
-  } catch (error) {
-    console.error("Error verifying token:", error);
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: Invalid token",
-    });
-  }
-}
+//   try {
+//     const decoded = jwt.verify(token, secretKey);
+//     res.json({
+//       success: true,
+//       role: decoded.role,
+//       registrationId: decoded.registrationId,
+//       userId: decoded.userId,
+//       id: decoded.id,
+//     });
+//   } catch (error) {
+//     console.error("Error verifying token:", error);
+//     return res.status(401).json({
+//       success: false,
+//       message: "Unauthorized: Invalid token",
+//     });
+//   }
+// }
 
 
 
