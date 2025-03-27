@@ -31,7 +31,17 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
+// In your server.js or app.js
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "script-src 'self' 'unsafe-inline' https://finance-office.onrender.com; " +
+    "connect-src 'self' https://finance-office.onrender.com; " +
+    "frame-src 'self'; " +
+    "object-src 'none';"
+  );
+  next();
+});
 // Middleware
 // app.use(cors());
 app.use(bodyParser.json()); // Parse JSON request bodies
