@@ -25,7 +25,7 @@ const Login = () => {
       const loginResponse = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/staff/login`,
         { registrationId, email, password },
-        { withCredentials: true }
+        // { withCredentials: true }
       );
 
       if (loginResponse.data.success) {
