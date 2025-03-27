@@ -31,7 +31,7 @@ router.put("/updatePassword", verifyToken, updatePassword);
 router.delete("/staff/:id", deleteStaff);
 // Add this route to your Express app
 router.get('/verify-email/:token', verifyEmail);
-router.get("/me", verifyToken, me);
+router.get("/me", me);
 
 
 module.exports = router;
