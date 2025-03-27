@@ -180,7 +180,6 @@ async function loginStaff(req, res) {
       `SELECT * FROM staff WHERE registrationId = ? AND email = ?`,
       [registrationId, email]
     );
-
     if (!staff.length) {
       return res.status(404).json({
         success: false,
