@@ -36,95 +36,42 @@ const loginLimite = rateLimit({
 // Handle login
 async function login(req, res) {
   try {
-    const { registrationId, email, password } = req.body;
-    const [users] = await pool.query(
-      `SELECT * FROM users WHERE registrationId = ? AND email = ?`,
-      [registrationId, email]
-    );
+    const { email, password } = req.body;
+    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
 
     if (!users.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No user found with the provided registration ID or email.",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const user = users[0];
-
-    if (user.status !== "active") {
-      return res.status(403).json({
-        success: false,
-        message: "Your account is inactive. Please contact support.",
-      });
-    }
-
-    // Verify password (compare plain-text password with hashed password)
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
-
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid password.",
-      });
+      return res.status(401).json({ success: false, message: "Invalid password" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      {
-        id: user.id,
-        registrationId: user.registrationId,
-        userId: user.userId,
-        role: user.role,
-      },
-      secretKey,
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET_KEY,
       { expiresIn: "1h" }
     );
 
-    // Cookie options
-    const cookieOptions = {
-      httpOnly: true, // Prevent access by JavaScript
-      secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
-      sameSite: "Strict", // Prevent CSRF
-      maxAge: 60 * 60 * 1000, // 1 hour
-      path: "/", // Accessible across the entire site
-    };
+    // Set HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true, // ✅ Prevent JavaScript access
+      secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in production
+      sameSite: "Strict", // ✅ CSRF protection
+      maxAge: 60 * 60 * 1000, // ✅ 1 hour
+      path: "/", // ✅ Accessible across all routes
+    });
 
-    // Set cookie
-    res.cookie("token", token, cookieOptions);
-
-    // Return success response
     return res.json({ success: true });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
-
-// async function me(req, res){
-//   const token = req.cookies.token;
-//   if (!token) {
-//     return res.status(401).json({
-//       success: false,
-//       message: "Unauthorized: No token found",
-//     });
-//   }
-//   try {
-//     const decoded = jwt.verify(token, secretKey);
-//     res.json({
-//       success: true,
-//       role: decoded.role,
-//       registrationId: decoded.registrationId,
-//       id: decoded.id,
-//     });
-//   } catch (error) {
-//     console.error("Error verifying token:", error);
-//     return res.status(401).json({
-//       success: false,
-//       message: "Unauthorized: Invalid token",
-//     });
-//   }
-// };
 
 async function me(req, res) {
   const token = req.cookies?.token; // ✅ Read token from cookies
