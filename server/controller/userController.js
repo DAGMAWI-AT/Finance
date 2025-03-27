@@ -81,16 +81,21 @@ async function login(req, res) {
       { expiresIn: "1h" }
     );
 
-    // Optionally, set the token as a cookie:
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 60 * 60 * 1000,
-      path: "/",
-    });
+    // Cookie options
+    const cookieOptions = {
+      httpOnly: true, // Prevent access by JavaScript
+      secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // For cross-site requests, "None" requires secure:true
+      // sameSite: "Strict", // Prevent CSRF
+      maxAge: 60 * 60 * 1000, // 1 hour
+      path: "/", // Accessible across the entire site
+    };
 
-    return res.json({ success: true, token }); // Return token in response body
+    // Set cookie
+    res.cookie("token", token, cookieOptions);
+
+    // Return success response
+    return res.json({ success: true });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });

@@ -28,6 +28,7 @@ router.get("/staff", getStaff);
 router.get("/staff/:id", getStaffById);
 router.put("/update/:id", uploadStaffPhoto.single("photo"), updateStaff);
 router.put("/updatePassword", verifyToken, updatePassword);
+
 router.delete("/staff/:id", deleteStaff);
 // Add this route to your Express app
 router.get('/verify-email/:token', verifyEmail);

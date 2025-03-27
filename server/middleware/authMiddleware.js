@@ -1,29 +1,66 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const secretKey = process.env.JWT_secretKey;
 
 const verifyToken = (req, res, next) => {
-  // Get token from header
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Format: "Bearer TOKEN"
-  
+  let token;
+
+  // Check for token in cookies
+  if (req.cookies.token) {
+    token = req.cookies.token;
+  }
+  // Check for token in headers
+  else {
+    const authHeader = req.headers.Authorization || req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer")) {
+      token = authHeader.split(" ")[1];
+    }
+  }
+
   if (!token) {
-    return res.status(401).json({ 
-      success: false,
-      message: 'Access denied. No token provided.' 
-    });
+    return res.status(401).json({ message: "No token, authorization denied" });
   }
 
   try {
     const decoded = jwt.verify(token, secretKey);
-    req.user = decoded; // Add decoded user to request object
+    req.user = decoded; // Attach the decoded user information to the request
     next();
-  } catch (error) {
-    console.error('Token verification error:', error);
-    return res.status(401).json({ 
-      success: false,
-      message: 'Invalid or expired token.' 
-    });
+  } catch (err) {
+    console.error("Token verification error:", err);
+    return res.status(401).json({ message: "Token is not valid" });
   }
 };
 
 module.exports = verifyToken;
+
+
+// //authmiddleware
+// require("dotenv").config();
+// const jwt = require("jsonwebtoken");
+// // const secretKey= require("../configration/jwtConfig");
+// const secretKey = process.env.JWT_secretKey ;
+
+// const verifyToken = (req, res, next) => {
+//   let token;
+//   let authHeader = req.headers.Authorization || req.headers.authorization;
+//   if (authHeader && authHeader.startsWith("Bearer")) {
+//     token = authHeader.split(" ")[1];
+//     if (!token) {
+//       return res
+//         .status(401)
+//         .json({ message: "no toke n, authorization denied" });
+//     }
+
+//     try {
+//       const decode = jwt.verify(token, secretKey );
+//       req.user = decode;
+//       // console.log("the decode user is :", req.user);
+//       next();
+//     } catch(err) {
+//        res.status(400).json({ message: "Token is not valid" });
+//     }
+//   } else {
+//     return res.status(401).json({ message: "no token, authorization denied" });
+//   }
+// };
+
+// module.exports = verifyToken;
