@@ -81,7 +81,7 @@ async function me(req, res) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_secretKey);
     return res.json({ success: true, user: decoded });
   } catch (error) {
     return res.status(401).json({ success: false, message: "Unauthorized: Invalid token" });
