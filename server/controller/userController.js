@@ -88,7 +88,7 @@ async function login(req, res) {
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // For cross-site requests, "None" requires secure:true
       // sameSite: "Strict", // Prevent CSRF
       maxAge: 60 * 60 * 1000, // 1 hour
-      domain: ".onrender.com",
+      domain: "https://finance-production-d89b.up.railway.app",
       path: "/", // Accessible across the entire site
     };
 
