@@ -127,31 +127,20 @@ async function login(req, res) {
 // };
 
 async function me(req, res) {
-  const token = req.cookies.token;
+  const token = req.cookies?.token; // ✅ Read token from cookies
+
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: No token found",
-    });
+    return res.status(401).json({ success: false, message: "Unauthorized: No token found" });
   }
 
   try {
-    const decoded = jwt.verify(token, secretKey);
-    res.json({
-      success: true,
-      role: decoded.role,
-      registrationId: decoded.registrationId,
-      userId: decoded.userId,
-      id: decoded.id,
-    });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    return res.json({ success: true, user: decoded });
   } catch (error) {
-    console.error("Error verifying token:", error);
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: Invalid token",
-    });
+    return res.status(401).json({ success: false, message: "Unauthorized: Invalid token" });
   }
 }
+
 
 
 
