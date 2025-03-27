@@ -22,7 +22,6 @@ import { FiExternalLink } from "react-icons/fi";
 import axios from "axios";
 import { ClipLoader } from "react-spinners";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 const ViewUserProfile = () => {
   const { id } = useParams();
@@ -41,14 +40,14 @@ const ViewUserProfile = () => {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const meResponse = await axios.get(`${API_BASE_URL}/api/users/me`, {
+      const meResponse = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/users/me`, {
         withCredentials: true,
       });
       if (!meResponse.data.success) {
         throw new Error("Failed to get user details");
       }
       const { userId } = meResponse.data;
-      const response = await axios.get(`${API_BASE_URL}/api/cso/${userId}`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/cso/${userId}`, {
         withCredentials: true
       });
       
@@ -59,13 +58,13 @@ const ViewUserProfile = () => {
       if (data.tin_certificate) {
         setFilePreviews(prev => ({
           ...prev,
-          tin_certificate: `${API_BASE_URL}/${data.tin_certificate}`
+          tin_certificate: `${process.env.REACT_APP_API_BASE_URL}/${data.tin_certificate}`
         }));
       }
       if (data.registration_certificate) {
         setFilePreviews(prev => ({
           ...prev,
-          registration_certificate: `${API_BASE_URL}/${data.registration_certificate}`
+          registration_certificate: `${process.env.REACT_APP_API_BASE_URL}/${data.registration_certificate}`
         }));
       }
       
@@ -158,7 +157,7 @@ const ViewUserProfile = () => {
             <div className="flex-shrink-0">
               {!imgError && profileData.logo ? (
                 <img
-                  src={`${API_BASE_URL}/${profileData.logo}`}
+                  src={`${process.env.REACT_APP_API_BASE_URL}/${profileData.logo}`}
                   alt="Organization logo"
                   onError={() => setImgError(true)}
                   className="w-32 h-32 rounded-lg object-cover border-4 border-white shadow-lg"

@@ -82,21 +82,13 @@ async function login(req, res) {
     );
 
     // Cookie options
-    // const cookieOptions = {
-    //   httpOnly: true, // Prevent access by JavaScript
-    //   secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
-    //   sameSite: "Strict", // Prevent CSRF
-    //   maxAge: 60 * 60 * 1000, // 1 hour
-    //   path: "/", // Accessible across the entire site
-    // };
     const cookieOptions = {
-      httpOnly: true,
-      secure: true, // MUST be true for HTTPS on Render
-      sameSite: 'none', // Required for cross-origin cookies
+      httpOnly: true, // Prevent access by JavaScript
+      secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
+      sameSite: "Strict", // Prevent CSRF
       maxAge: 60 * 60 * 1000, // 1 hour
-      path: '/'
+      path: "/", // Accessible across the entire site
     };
-    
 
     // Set cookie
     res.cookie("token", token, cookieOptions);
