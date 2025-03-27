@@ -218,6 +218,7 @@ async function loginStaff(req, res) {
     const token = jwt.sign(
       {
         id: user.id,
+        userId: user.userId,
         registrationId: user.registrationId,
         role: user.role,
       },
@@ -259,6 +260,7 @@ async function me(req, res) {
     res.json({
       success: true,
       role: decoded.role,
+      userId: decoded.userId,
       registrationId: decoded.registrationId,
       id: decoded.id,
     });
