@@ -229,7 +229,7 @@ async function loginStaff(req, res) {
     const cookieOptions = {
       httpOnly: true, // Prevent access by JavaScript
       secure: process.env.NODE_ENV === "production", // Send only over HTTPS in production
-      sameSite: "Strict", // Prevent CSRF
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // sameSite: "Strict", // Prevent CSRF
       maxAge: 60 * 60 * 1000, // 1 hour
       path: "/", // Accessible across the entire site
     };
