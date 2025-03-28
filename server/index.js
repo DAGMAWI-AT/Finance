@@ -21,9 +21,12 @@ const path = require("path");
 app.use(cookieParser()); // <-- This is critical for req.cookies to be available
 
 app.use(cors({
-  origin: ["https://csosfinance1.netlify.app"], // Allow requests from this origin
-  credentials: true // Allow cookies to be sent
+  origin: ["https://csosfinance1.netlify.app", "http://localhost:3000"], // Allow both local and deployed frontend
+  credentials: true, // Allow cookies to be sent
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Ensure all methods are allowed
+  allowedHeaders: "Content-Type,Authorization" // Allow required headers
 }));
+
 // app.use(cors({ origin: 'https://csosfinance1.netlify.app', credentials: true }));
 
 
