@@ -170,9 +170,9 @@ exports.uploadMiddleware = multer({
 //     }
 // };
 
-const { pool } = require('../config/db');
-const fs = require('fs');
-const { createLettersTable } = require('../model/letter');
+// const { pool } = require('../config/db');
+// const fs = require('fs');
+// const { createLettersTable } = require('../model/letter');
 
 // Helper function to safely prepare selected_csos data
 const prepareSelectedCsos = (input) => {
