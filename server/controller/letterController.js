@@ -175,6 +175,7 @@ exports.uploadMiddleware = multer({
 // const { createLettersTable } = require('../model/letter');
 
 // Helper function to safely prepare selected_csos data
+
 const prepareSelectedCsos = (input) => {
   if (!input) return null;
   
