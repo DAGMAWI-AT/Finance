@@ -366,6 +366,7 @@ exports.getLettersByCSO = async (req, res) => {
             data: formattedLetters
         });
 
+        
     } catch (error) {
         console.error('Error fetching letters:', error);
         res.status(500).json({
