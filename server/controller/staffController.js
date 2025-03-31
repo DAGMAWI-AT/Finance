@@ -409,7 +409,7 @@ const forgotPassword = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset",
-      text: `Click the link to reset your password: ${process.env.FRONTEND_URL}/resetPassword/${resetToken}`,
+      text: `Click the link (${staff[0].registrationId}) to reset your password: ${process.env.FRONTEND_URL}/resetPassword/${resetToken}`,
     });
 
     res.json({ success: true, message: "Password reset email sent" });
