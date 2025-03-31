@@ -81,138 +81,339 @@ exports.uploadMiddleware = multer({
 //     }
 // };
 // Helper function to safely parse JSON
-const safeJsonParse = (str, defaultValue = []) => {
-    try {
-        return str && typeof str === "string" ? JSON.parse(str) : defaultValue;
-    } catch (error) {
-        console.error('JSON parse error:', error, 'Input:', str);
-        return defaultValue; // Fallback to empty array
+// const safeJsonParse = (str, defaultValue = []) => {
+//     try {
+//         return str && typeof str === "string" ? JSON.parse(str) : defaultValue;
+//     } catch (error) {
+//         console.error('JSON parse error:', error, 'Input:', str);
+//         return defaultValue; // Fallback to empty array
+//     }
+// };
+
+// exports.createLetter = async (req, res) => {
+//     const connection = await pool.getConnection();
+//     try {
+//         await connection.beginTransaction();
+//         await createLettersTable();
+
+//         const { title, summary, type, sendToAll, selectedCsos } = req.body;
+//         const userId = req.user.id; // From auth middleware
+
+//         const letterData = {
+//             title,
+//             summary,
+//             type,
+//             send_to_all: sendToAll === 'true',
+//             selected_csos: safeJsonParse(selectedCsos, null), // FIXED HERE
+//             attachment_path: req.file ? `${req.file.filename}` : null,
+//             attachment_name: req.file?.originalname,
+//             attachment_mimetype: req.file?.mimetype,
+//             created_by: userId
+//         };
+
+//         const [result] = await connection.query(
+//             `INSERT INTO letters SET ?`,
+//             [letterData]
+//         );
+
+//         await connection.commit();
+//         res.status(201).json({
+//             success: true,
+//             data: {
+//                 id: result.insertId,
+//                 ...letterData
+//             }
+//         });
+//     } catch (error) {
+//         await connection.rollback();
+//         console.error('Error creating letter:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to create letter',
+//             error: error.message
+//         });
+//     } finally {
+//         connection.release();
+//     }
+// };
+// exports.getAllLetters = async (req, res) => {
+//     try {
+//         const [letters] = await pool.query(`
+//             SELECT 
+//                 id, title, summary, type,
+//                 send_to_all AS sendToAll,
+//                 selected_csos AS selectedCsos,
+//                 attachment_path AS attachmentPath,
+//                 attachment_name AS attachmentName,
+//                 attachment_mimetype AS attachmentMimetype,
+//                 created_by AS createdBy,
+//                 created_at AS createdAt,
+//                 updated_at AS updatedAt
+//             FROM letters
+//             ORDER BY created_at DESC
+//         `);
+
+//         res.status(200).json({
+//             success: true,
+//             data: letters.map(letter => ({
+//                 ...letter,
+//                 selectedCsos: safeJsonParse(letter.selectedCsos) // FIXED HERE
+//             }))
+//         });
+//     } catch (error) {
+//         console.error('Error fetching letters:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch letters',
+//             error: error.message
+//         });
+//     }
+// };
+
+const { pool } = require('../config/db');
+const fs = require('fs');
+const { createLettersTable } = require('../model/letter');
+
+// Helper function to safely prepare selected_csos data
+const prepareSelectedCsos = (input) => {
+  if (!input) return null;
+  
+  try {
+    // Handle case where input is already an array
+    if (Array.isArray(input)) {
+      return input.length > 0 ? JSON.stringify(input) : null;
     }
+    
+    // Handle case where input is a number
+    if (typeof input === 'number') {
+      return JSON.stringify([input]);
+    }
+    
+    // Handle case where input is a string
+    if (typeof input === 'string') {
+      // If it's a JSON string, parse and re-stringify
+      if (input.startsWith('[') || input.startsWith('{')) {
+        const parsed = JSON.parse(input);
+        return Array.isArray(parsed) && parsed.length > 0 ? JSON.stringify(parsed) : null;
+      }
+      // If it's a single number as string
+      if (/^\d+$/.test(input)) {
+        return JSON.stringify([parseInt(input, 10)]);
+      }
+    }
+    
+    return null;
+  } catch (e) {
+    console.error('Error preparing selectedCsos:', e);
+    return null;
+  }
 };
 
+// Create a new letter
 exports.createLetter = async (req, res) => {
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        await createLettersTable();
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    await createLettersTable();
 
-        const { title, summary, type, sendToAll, selectedCsos } = req.body;
-        const userId = req.user.id; // From auth middleware
+    const { title, summary, type, sendToAll, selectedCsos } = req.body;
+    const userId = req.user.id;
 
-        const letterData = {
-            title,
-            summary,
-            type,
-            send_to_all: sendToAll === 'true',
-            selected_csos: safeJsonParse(selectedCsos, null), // FIXED HERE
-            attachment_path: req.file ? `${req.file.filename}` : null,
-            attachment_name: req.file?.originalname,
-            attachment_mimetype: req.file?.mimetype,
-            created_by: userId
-        };
+    // Prepare the letter data
+    const letterData = {
+      title,
+      summary,
+      type,
+      send_to_all: sendToAll === 'true',
+      selected_csos: prepareSelectedCsos(selectedCsos),
+      created_by: userId
+    };
 
-        const [result] = await connection.query(
-            `INSERT INTO letters SET ?`,
-            [letterData]
-        );
-
-        await connection.commit();
-        res.status(201).json({
-            success: true,
-            data: {
-                id: result.insertId,
-                ...letterData
-            }
-        });
-    } catch (error) {
-        await connection.rollback();
-        console.error('Error creating letter:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create letter',
-            error: error.message
-        });
-    } finally {
-        connection.release();
+    // Handle file upload if present
+    if (req.file) {
+      letterData.attachment_path = req.file.filename;
+      letterData.attachment_name = req.file.originalname;
+      letterData.attachment_mimetype = req.file.mimetype;
     }
+
+    // Execute the query with proper parameter binding
+    const [result] = await connection.query(
+      `INSERT INTO letters SET ?`,
+      [letterData]
+    );
+
+    await connection.commit();
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        id: result.insertId,
+        ...letterData,
+        selectedCsos: letterData.selected_csos ? JSON.parse(letterData.selected_csos) : []
+      }
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error creating letter:', error);
+    
+    let errorMessage = 'Failed to create letter';
+    if (error.code === 'ER_INVALID_JSON_TEXT') {
+      errorMessage = 'Invalid organization selection format';
+    } else if (error.sqlMessage) {
+      errorMessage = `Database error: ${error.sqlMessage}`;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: errorMessage,
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
 };
+
+// Get all letters with safe JSON parsing
 exports.getAllLetters = async (req, res) => {
-    try {
-        const [letters] = await pool.query(`
-            SELECT 
-                id, title, summary, type,
-                send_to_all AS sendToAll,
-                selected_csos AS selectedCsos,
-                attachment_path AS attachmentPath,
-                attachment_name AS attachmentName,
-                attachment_mimetype AS attachmentMimetype,
-                created_by AS createdBy,
-                created_at AS createdAt,
-                updated_at AS updatedAt
-            FROM letters
-            ORDER BY created_at DESC
-        `);
+  try {
+    const [letters] = await pool.query(`
+      SELECT 
+        id, title, summary, type,
+        send_to_all AS sendToAll,
+        selected_csos AS selectedCsos,
+        attachment_path AS attachmentPath,
+        attachment_name AS attachmentName,
+        attachment_mimetype AS attachmentMimetype,
+        created_by AS createdBy,
+        created_at AS createdAt,
+        updated_at AS updatedAt
+      FROM letters
+      ORDER BY created_at DESC
+    `);
 
-        res.status(200).json({
-            success: true,
-            data: letters.map(letter => ({
-                ...letter,
-                selectedCsos: safeJsonParse(letter.selectedCsos) // FIXED HERE
-            }))
-        });
-    } catch (error) {
-        console.error('Error fetching letters:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch letters',
-            error: error.message
-        });
-    }
+    const parseSelectedCsos = (input) => {
+      if (!input) return [];
+      try {
+        const parsed = JSON.parse(input);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        return [];
+      }
+    };
+
+    res.status(200).json({
+      success: true,
+      data: letters.map(letter => ({
+        ...letter,
+        selectedCsos: parseSelectedCsos(letter.selectedCsos)
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching letters:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch letters',
+      error: error.message
+    });
+  }
 };
 
+// Get single letter by ID
 exports.getLetterById = async (req, res) => {
-    try {
-        const [letters] = await pool.query(`
-            SELECT 
-                l.id, l.title, l.summary, l.type,
-                l.send_to_all AS sendToAll,
-                l.selected_csos AS selectedCsos,
-                l.attachment_path AS attachmentPath,
-                l.attachment_name AS attachmentName,
-                l.attachment_mimetype AS attachmentMimetype,
-                l.created_at AS createdAt,
-                l.updated_at AS updatedAt,
-                s.name AS createdBy
-            FROM letters l
-            LEFT JOIN staff s ON l.created_by = s.id
-            WHERE l.id = ?
-        `, [req.params.id]);
+  try {
+    const [letters] = await pool.query(`
+      SELECT 
+        l.id, l.title, l.summary, l.type,
+        l.send_to_all AS sendToAll,
+        l.selected_csos AS selectedCsos,
+        l.attachment_path AS attachmentPath,
+        l.attachment_name AS attachmentName,
+        l.attachment_mimetype AS attachmentMimetype,
+        l.created_at AS createdAt,
+        l.updated_at AS updatedAt,
+        s.name AS createdBy
+      FROM letters l
+      LEFT JOIN staff s ON l.created_by = s.id
+      WHERE l.id = ?
+    `, [req.params.id]);
 
-        if (!letters || letters.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Letter not found'
-            });
-        }
-
-        const letter = letters[0];
-
-        res.status(200).json({
-            success: true,
-            data: {
-                ...letter,
-                selectedCsos: safeJsonParse(letter.selectedCsos) // FIXED HERE
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching letter:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch letter',
-            error: error.message
-        });
+    if (!letters || letters.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Letter not found'
+      });
     }
+
+    const parseSelectedCsos = (input) => {
+      if (!input) return [];
+      try {
+        const parsed = JSON.parse(input);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        return [];
+      }
+    };
+
+    const letter = letters[0];
+    res.status(200).json({
+      success: true,
+      data: {
+        ...letter,
+        selectedCsos: parseSelectedCsos(letter.selectedCsos)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching letter:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch letter',
+      error: error.message
+    });
+  }
 };
+// exports.getLetterById = async (req, res) => {
+//     try {
+//         const [letters] = await pool.query(`
+//             SELECT 
+//                 l.id, l.title, l.summary, l.type,
+//                 l.send_to_all AS sendToAll,
+//                 l.selected_csos AS selectedCsos,
+//                 l.attachment_path AS attachmentPath,
+//                 l.attachment_name AS attachmentName,
+//                 l.attachment_mimetype AS attachmentMimetype,
+//                 l.created_at AS createdAt,
+//                 l.updated_at AS updatedAt,
+//                 s.name AS createdBy
+//             FROM letters l
+//             LEFT JOIN staff s ON l.created_by = s.id
+//             WHERE l.id = ?
+//         `, [req.params.id]);
+
+//         if (!letters || letters.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Letter not found'
+//             });
+//         }
+
+//         const letter = letters[0];
+
+//         res.status(200).json({
+//             success: true,
+//             data: {
+//                 ...letter,
+//                 selectedCsos: safeJsonParse(letter.selectedCsos) // FIXED HERE
+//             }
+//         });
+//     } catch (error) {
+//         console.error('Error fetching letter:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch letter',
+//             error: error.message
+//         });
+//     }
+// };
 
 // Get all letters
 // exports.getAllLetters = async (req, res) => {
