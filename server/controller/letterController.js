@@ -80,6 +80,16 @@ exports.uploadMiddleware = multer({
 //         connection.release();
 //     }
 // };
+// Helper function to safely parse JSON
+const safeJsonParse = (str, defaultValue = []) => {
+    try {
+        return str && typeof str === "string" ? JSON.parse(str) : defaultValue;
+    } catch (error) {
+        console.error('JSON parse error:', error, 'Input:', str);
+        return defaultValue; // Fallback to empty array
+    }
+};
+
 exports.createLetter = async (req, res) => {
     const connection = await pool.getConnection();
     try {
