@@ -34,6 +34,52 @@ exports.uploadMiddleware = multer({
 });
 
 // Create a new letter
+// exports.createLetter = async (req, res) => {
+//     const connection = await pool.getConnection();
+//     try {
+//         await connection.beginTransaction();
+//         await createLettersTable();
+
+//         const { title, summary, type, sendToAll, selectedCsos } = req.body;
+//         const userId = req.user.id; // From auth middleware
+
+//         const letterData = {
+//             title,
+//             summary,
+//             type,
+//             send_to_all: sendToAll === 'true',
+//             selected_csos: selectedCsos ? JSON.stringify(JSON.parse(selectedCsos)) : null,
+//             attachment_path: req.file ? `${req.file.filename}` : null,
+//             attachment_name: req.file?.originalname,
+//             attachment_mimetype: req.file?.mimetype,
+//             created_by: userId
+//         };
+
+//         const [result] = await connection.query(
+//             `INSERT INTO letters SET ?`,
+//             [letterData]
+//         );
+
+//         await connection.commit();
+//         res.status(201).json({
+//             success: true,
+//             data: {
+//                 id: result.insertId,
+//                 ...letterData
+//             }
+//         });
+//     } catch (error) {
+//         await connection.rollback();
+//         console.error('Error creating letter:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to create letter',
+//             error: error.message
+//         });
+//     } finally {
+//         connection.release();
+//     }
+// };
 exports.createLetter = async (req, res) => {
     const connection = await pool.getConnection();
     try {
@@ -48,7 +94,7 @@ exports.createLetter = async (req, res) => {
             summary,
             type,
             send_to_all: sendToAll === 'true',
-            selected_csos: selectedCsos ? JSON.stringify(JSON.parse(selectedCsos)) : null,
+            selected_csos: safeJsonParse(selectedCsos, null), // FIXED HERE
             attachment_path: req.file ? `${req.file.filename}` : null,
             attachment_name: req.file?.originalname,
             attachment_mimetype: req.file?.mimetype,
@@ -80,8 +126,6 @@ exports.createLetter = async (req, res) => {
         connection.release();
     }
 };
-
-// Get all letters
 exports.getAllLetters = async (req, res) => {
     try {
         const [letters] = await pool.query(`
@@ -99,21 +143,11 @@ exports.getAllLetters = async (req, res) => {
             ORDER BY created_at DESC
         `);
 
-        // Helper function to safely parse JSON
-        const safeJsonParse = (str, defaultValue = []) => {
-            try {
-                return str ? JSON.parse(str) : defaultValue;
-            } catch (error) {
-                console.error('JSON parse error:', error);
-                return defaultValue;
-            }
-        };
-
         res.status(200).json({
             success: true,
             data: letters.map(letter => ({
                 ...letter,
-                selectedCsos: safeJsonParse(letter.selectedCsos)
+                selectedCsos: safeJsonParse(letter.selectedCsos) // FIXED HERE
             }))
         });
     } catch (error) {
@@ -126,7 +160,6 @@ exports.getAllLetters = async (req, res) => {
     }
 };
 
-// Get single letter by ID
 exports.getLetterById = async (req, res) => {
     try {
         const [letters] = await pool.query(`
@@ -153,22 +186,12 @@ exports.getLetterById = async (req, res) => {
         }
 
         const letter = letters[0];
-        
-        // Safely parse selectedCsos
-        let selectedCsos = [];
-        try {
-            selectedCsos = letter.selectedCsos ? JSON.parse(letter.selectedCsos) : [];
-        } catch (e) {
-            console.error('Error parsing selectedCsos:', e);
-            // Handle legacy format if needed
-            selectedCsos = letter.selectedCsos ? [letter.selectedCsos] : [];
-        }
 
         res.status(200).json({
             success: true,
             data: {
                 ...letter,
-                selectedCsos: selectedCsos
+                selectedCsos: safeJsonParse(letter.selectedCsos) // FIXED HERE
             }
         });
     } catch (error) {
@@ -180,6 +203,116 @@ exports.getLetterById = async (req, res) => {
         });
     }
 };
+
+// Get all letters
+// exports.getAllLetters = async (req, res) => {
+//     try {
+//         const [letters] = await pool.query(`
+//             SELECT 
+//                 id, title, summary, type,
+//                 send_to_all AS sendToAll,
+//                 selected_csos AS selectedCsos,
+//                 attachment_path AS attachmentPath,
+//                 attachment_name AS attachmentName,
+//                 attachment_mimetype AS attachmentMimetype,
+//                 created_by AS createdBy,
+//                 created_at AS createdAt,
+//                 updated_at AS updatedAt
+//             FROM letters
+//             ORDER BY created_at DESC
+//         `);
+
+//         // Helper function to safely parse JSON
+//         // const safeJsonParse = (str, defaultValue = []) => {
+//         //     try {
+//         //         return str ? JSON.parse(str) : defaultValue;
+//         //     } catch (error) {
+//         //         console.error('JSON parse error:', error);
+//         //         return defaultValue;
+//         //     }
+//         // };
+//         const safeJsonParse = (str, defaultValue = []) => {
+//             try {
+//                 return str && str.trim() ? JSON.parse(str) : defaultValue;
+//             } catch (error) {
+//                 console.error('JSON parse error:', error);
+//                 return defaultValue;
+//             }
+//         };
+
+//         res.status(200).json({
+//             success: true,
+//             data: letters.map(letter => ({
+//                 ...letter,
+//                 // selectedCsos: safeJsonParse(letter.selectedCsos)
+//                 selectedCsos: safeJsonParse(letter.selectedCsos)
+
+//             }))
+//         });
+//     } catch (error) {
+//         console.error('Error fetching letters:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch letters',
+//             error: error.message
+//         });
+//     }
+// };
+
+// // Get single letter by ID
+// exports.getLetterById = async (req, res) => {
+//     try {
+//         const [letters] = await pool.query(`
+//             SELECT 
+//                 l.id, l.title, l.summary, l.type,
+//                 l.send_to_all AS sendToAll,
+//                 l.selected_csos AS selectedCsos,
+//                 l.attachment_path AS attachmentPath,
+//                 l.attachment_name AS attachmentName,
+//                 l.attachment_mimetype AS attachmentMimetype,
+//                 l.created_at AS createdAt,
+//                 l.updated_at AS updatedAt,
+//                 s.name AS createdBy
+//             FROM letters l
+//             LEFT JOIN staff s ON l.created_by = s.id
+//             WHERE l.id = ?
+//         `, [req.params.id]);
+
+//         if (!letters || letters.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Letter not found'
+//             });
+//         }
+
+//         const letter = letters[0];
+        
+//         // Safely parse selectedCsos
+//         let selectedCsos = [];
+//         try {
+//             selectedCsos = letter.selectedCsos ? JSON.parse(letter.selectedCsos) : [];
+//         } catch (e) {
+//             console.error('Error parsing selectedCsos:', e);
+//             // Handle legacy format if needed
+//             selectedCsos = letter.selectedCsos ? [letter.selectedCsos] : [];
+//         }
+
+//         res.status(200).json({
+//             success: true,
+//             data: {
+//                 ...letter,
+//                 selectedCsos: selectedCsos
+//             }
+//         });
+//     } catch (error) {
+//         console.error('Error fetching letter:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch letter',
+//             error: error.message
+//         });
+//     }
+// };
 
 // Update letter
 exports.updateLetter = async (req, res) => {
@@ -195,7 +328,9 @@ exports.updateLetter = async (req, res) => {
             summary,
             type,
             send_to_all: sendToAll === 'true',
-            selected_csos: selectedCsos ? JSON.stringify(JSON.parse(selectedCsos)) : null,
+            // selected_csos: selectedCsos ? JSON.stringify(JSON.parse(selectedCsos)) : null,
+            selected_csos: selectedCsos ? JSON.stringify(safeJsonParse(selectedCsos)) : null,
+
             updated_at: new Date()
         };
 
@@ -366,7 +501,7 @@ exports.getLettersByCSO = async (req, res) => {
             data: formattedLetters
         });
 
-        
+
     } catch (error) {
         console.error('Error fetching letters:', error);
         res.status(500).json({
