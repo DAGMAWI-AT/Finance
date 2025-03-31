@@ -219,7 +219,7 @@ const registerStaff = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: email,
         subject: "Email Verification",
-        html: `<p>Welcome ${name},\n\nPlease click the link below to verify your email and complete your registration:\n\n${process.env.FRONTEND_URL}/verify/${verificationToken}\n\nThis link will expire in 1 hour.</p>`,
+        html: `<p>Welcome ${name} your registration id is ${registrationId},\n\nPlease click the link below to verify your email and complete your registration:\n\n${process.env.FRONTEND_URL}/verify/${verificationToken}\n\nThis link will expire in 1 hour.</p>`,
       });
 
       res.json({
