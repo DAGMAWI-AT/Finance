@@ -42,7 +42,7 @@ const getNotifications = async (req, res) => {
   try {
     await createNotificationsTable();
     const [notification] = await pool.execute(
-      `SELECT * FROM notifications`
+      `SELECT * FROM notifications ORDER BY timestamp DESC`
     );
     res.json(notification);
   } catch (error) {
@@ -86,7 +86,7 @@ const getNotificationsById = async (req, res) => {
   const id = req.params.id;
   try {
     const [notification] = await pool.query(
-      `SELECT * FROM notifications WHERE id = ?`,
+      `SELECT * FROM notifications WHERE id = ? ORDER BY timestamp DESC`,
       [id]
     );
     if (notification.length === 0) {

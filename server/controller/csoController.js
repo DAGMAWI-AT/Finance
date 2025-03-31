@@ -39,6 +39,8 @@ const upload = multer({
   { name: "logo", maxCount: 1 },
   { name: "tin_certificate", maxCount: 1 },
   { name: "registration_certificate", maxCount: 1 },
+  { name: "official_rep_letter", maxCount: 1 },
+
 ]);
 
 // const baseURL = "${process.env.REACT_APP_API_URL}/public/";
@@ -113,6 +115,8 @@ const registerCso = async (req, res) => {
     data.logo = processFile(req, "logo", "cso_logo", req.body.csoName);
     data.tin_certificate = processFile(req, "tin_certificate", "cso_tin", req.body.csoName);
     data.registration_certificate = processFile(req, "registration_certificate", "cso_registration", req.body.csoName);
+    data.official_rep_letter = processFile(req, "official_rep_letter", "cso_official_rep_letter", req.body.csoName);
+
 
     // Insert the data into the database
     const [result] = await connection.query(`INSERT INTO ${csoTable} SET ?`, [data]);
@@ -170,7 +174,7 @@ const updateCso = async (req, res) => {
   try {
     // Retrieve the existing CSO record
     const [existingCso] = await pool.query(
-      `SELECT logo, tin_certificate, registration_certificate FROM ${csoTable} WHERE id = ?`,
+      `SELECT logo, tin_certificate, registration_certificate, official_rep_letter FROM ${csoTable} WHERE id = ?`,
       [id]
     );
 
@@ -207,6 +211,10 @@ const updateCso = async (req, res) => {
       updateData.registration_certificate = processFile(req, "registration_certificate", "cso_registration", req.body.csoName);
     }
 
+    if (req.files && req.files["official_rep_letter"]) {
+      await deleteOldFile(existingCso[0].official_rep_letter, "cso_official_rep_letter");
+      updateData.official_rep_letter = processFile(req, "official_rep_letter", "cso_official_rep_letter", req.body.csoName);
+    }
     // Set the update timestamp; remove 'date' if provided to avoid conflicts.
     updateData.updated_at = new Date();
     if (updateData.date) {
@@ -256,6 +264,7 @@ const deleteCso = async (req, res) => {
     await deleteOldFile(existingCso[0].logo, "cso_logo");
     await deleteOldFile(existingCso[0].tin_certificate, "cso_tin");
     await deleteOldFile(existingCso[0].registration_certificate, "cso_registration");
+    await deleteOldFile(existingCso[0].official_rep_letter, "cso_official_rep_letter");
 
     // Now delete the record from the database
     const [result] = await pool.query(`DELETE FROM ${csoTable} WHERE id = ?`, [id]);

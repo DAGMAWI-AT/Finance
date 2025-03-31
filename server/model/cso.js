@@ -19,6 +19,7 @@ async function createCsoTable() {
               logo VARCHAR(255), -- Path to the logo file
               tin_certificate VARCHAR(255), -- Path to the TIN certificate file
               registration_certificate VARCHAR(255), -- Path to the registration certificate file
+              official_rep_letter VARCHAR(255), -- Path to the official_rep_letter
               status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
               date TIMESTAMP DEFAULT CURRENT_TIMESTAMP

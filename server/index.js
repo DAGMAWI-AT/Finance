@@ -33,11 +33,14 @@ app.use(cors({
 // Middleware
 // app.use(cors());
 app.use(bodyParser.json()); // Parse JSON request bodies
+app.use("/letter", express.static(path.join(__dirname, "public/letter")));
 app.use("/comment", express.static("public/comments"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/cso_logo", express.static("public/cso_logo"));
 app.use("/cso_tin", express.static("public/cso_tin"));
 app.use("/cso_registration", express.static("public/cso_registration"));
+app.use("/cso_official_rep_letter", express.static("public/cso_official_rep_letter"));
+
 
 app.use("/user_report", express.static(path.join(__dirname, "public/user_report")));
 app.use("/user_report", express.static("public/user_report"));
@@ -59,7 +62,7 @@ app.use("/api/reportCategory", reportCategoryRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/notifications", notificationRoute);
 app.use('/api/projects', projectRoutes);
-app.use('/api/letter',letterRoute);  // Use the letter routes
+app.use('/api/letters',letterRoute);  // Use the letter routes
 
 app.use('/api', beneficiaryRoute);
 
