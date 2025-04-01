@@ -12,7 +12,8 @@ const {
 const verifyToken = require("../middleware/authMiddleware");
 
 // POST: Create a letter
-router.post("/submit", verifyToken, uploadMiddleware, createLetter);
+router.post("/submit", verifyToken, uploadMiddleware.single('attachment'), createLetter);
+
 // GET: Retrieve all letters
 router.get('/', getAllLetters);
 router.get('/get/:id', getLetterById);
@@ -21,7 +22,7 @@ router.get('/get/:id', getLetterById);
 // router.get('/:id', getLetterById);
 
 // PUT: Update a letter by ID
-router.put('/:id', verifyToken, uploadMiddleware, updateLetter);
+router.put('/:id', verifyToken, uploadMiddleware.single('attachment'), updateLetter);
 
 // DELETE: Delete a letter by ID
 router.delete('/:id', verifyToken, deleteLetter);
