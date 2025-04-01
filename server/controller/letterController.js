@@ -68,9 +68,7 @@ const prepareSelectedCsos = (input) => {
     return null;
   }
 };
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+
 
 // Configure file storage with 'attachment' field name
 const storage = multer.diskStorage({
