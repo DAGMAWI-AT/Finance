@@ -541,14 +541,14 @@ exports.updateLetter = async (req, res) => {
             type,
             send_to_all: sendToAll === 'true',
             // selected_csos: selectedCsos ? JSON.stringify(JSON.parse(selectedCsos)) : null,
-            selected_csos: selectedCsos ? JSON.stringify(safeJsonParse(selectedCsos)) : null,
-
+            // selected_csos: selectedCsos ? JSON.stringify(safeJsonParse(selectedCsos)) : null,
+            selected_csos: prepareSelectedCsos(selectedCsos),
             updated_at: new Date()
         };
 
         // If new file uploaded, update file info
         if (req.file) {
-            updateData.attachment_path = `/uploads/letters/${req.file.filename}`;
+            updateData.attachment_path = req.file.filename;
             updateData.attachment_name = req.file.originalname;
             updateData.attachment_mimetype = req.file.mimetype;
         }
