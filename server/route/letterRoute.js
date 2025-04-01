@@ -13,7 +13,6 @@ const verifyToken = require("../middleware/authMiddleware");
 
 // POST: Create a letter
 router.post("/submit", verifyToken, uploadMiddleware, createLetter);
-
 // GET: Retrieve all letters
 router.get('/', getAllLetters);
 router.get('/get/:id', getLetterById);
