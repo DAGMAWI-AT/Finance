@@ -28,6 +28,9 @@ router.put('/:id', verifyToken, uploadMiddleware, updateLetter);
 router.delete('/:id', verifyToken, deleteLetter);
 // GET: Retrieve letters for a specific CSO
 router.get('/cso/:csoId', verifyToken, getLettersByCSO);
+
+
+
 module.exports = router;
 
 

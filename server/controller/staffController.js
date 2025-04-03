@@ -41,91 +41,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Register Staff (with encryption and file upload)
-// const registerStaff = async (req, res) => {
-//   try {
-//     await createStaffTable();
-//     const { name, email, phone, password, role } = req.body;
 
-//     if (!name || !email || !phone || !password) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "All fields are required." });
-//     }
-
-//     // Check if email or phone already exists
-//     const [existingUser] = await pool.query(
-//       `SELECT * FROM ${staffTable} WHERE email = ? OR phone = ?`,
-//       [email, phone]
-//     );
-//     const [existingUsersCso] = await pool.query(
-//       `SELECT * FROM cso WHERE email = ? OR phone = ?`,
-//       [email, phone]
-//     );
-
-//     if (existingUser.length > 0 ||  existingUsersCso.length>0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "An account already exists for the provided email or phone.",
-//       });
-//     }
-//     // Fetch the highest existing staff registration ID
-//     const [latestStaff] = await pool.query(
-//       `SELECT registrationId FROM ${staffTable} ORDER BY id DESC LIMIT 1`
-//     );
-
-//     let newStaffNumber = 1; // Default if no staff exists
-
-//     if (latestStaff.length > 0) {
-//       const lastRegId = latestStaff[0].registrationId; // e.g., "Staff-0012"
-//       const lastNumber = parseInt(lastRegId.split("-")[1], 10); // Extract "12"
-//       newStaffNumber = lastNumber + 1; // Increment to "13"
-//     }
-
-//     // Format the registration ID as "Staff-0001"
-//     const registrationId = `Staff-${String(newStaffNumber).padStart(4, "0")}`;
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     // const registrationId = `Staff-${Date.now()}`;
-
-//     if (req.file) {
-//       req.body.photo = req.file.filename;
-//     }
-
-//     const staffData = {
-//       ...req.body,
-//       registrationId,
-//       password: hashedPassword,
-//       email_verified: false, // Add this flag to track verification status
-//     };
-
-//     const [result] = await pool.query(`INSERT INTO ${staffTable} SET ?`, [
-//       staffData,
-//     ]);
-
-//     // Generate a verification token
-//     const verificationToken = jwt.sign(
-//       { id: result.insertId, email },
-//       secretKey,
-//       { expiresIn: "1h" } // Token will expire in 1 hour
-//     );
-
-//     // Send the email verification link
-//     await transporter.sendMail({
-//       from: process.env.EMAIL_USER,
-//       to: email,
-//       subject: "Email Verification",
-//       html: `<p>Welcome ${name},\n\nPlease click the link below to verify your email and complete your registration:\n\n${process.env.FRONTEND_URL}/verify/${verificationToken}\n\nThis link will expire in 1 hour.`,
-//     });
-
-//     res.json({
-//       success: true,
-//       message: "Registration successful! Check your email for verification.",
-//       result,
-//     });
-//   } catch (error) {
-//     console.error("Error registering staff:", error);
-//     res.status(500).json({ success: false, message: "Internal Server Error" });
-//   }
-// };
 const registerStaff = async (req, res) => {
   try {
     await createStaffTable();
@@ -511,7 +427,17 @@ const updateStaff = async (req, res) => {
         .status(400)
         .json({ success: false, message: "No data provided for update." });
     }
-
+    const [staff] = await pool.query(
+      `SELECT * FROM staff WHERE id = ? `,
+      [id]
+    );
+    
+    if (staff[0].email_verified !== 1) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is unverified. pleas verify your account by email, Please contact support",
+      });
+    }
     updateData.updated_at = new Date();
     if (req.file) {
       updateData.photo = req.file.filename;
