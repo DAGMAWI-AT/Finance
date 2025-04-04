@@ -249,9 +249,10 @@ exports.getAllSubmission = async (req, res) => {
             [userId]
         );
 
-        if (!staffCheck.length || userRole !== 'admin' || userRole !== 'sup_admin') {
-            return res.status(403).json({ error: 'Admin access required' });
+        if (!staffCheck.length || (userRole !== 'admin' && userRole !== 'sup_admin')) {
+            return res.status(403).json({ error: 'Admin and Super Admin access required' });
         }
+        
     const [submission] = await pool.execute(`SELECT * FROM applicationForm ORDER BY created_at DESC`);
 
         res.json(submission);
