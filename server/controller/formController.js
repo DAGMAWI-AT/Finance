@@ -249,7 +249,7 @@ exports.getAllSubmission = async (req, res) => {
             [userId]
         );
 
-        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'admin') {
+        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
         // const [submission] = await pool.query(
@@ -336,9 +336,9 @@ exports.getApplicationFormsByUserId = async (req, res) => {
 
         // For non-admin users, restrict to their own data
         if (userRole !== 'admin' && userRole !== 'sup_admin') {
-            if (req.user.id !== parseInt(id)) {
+            // if (req.user.id !== parseInt(id)) {
                 return res.status(403).json({ error: 'Unauthorized access' });
-            }
+            // }
         }
 
         const [applicationForms] = await pool.execute(query, params);
