@@ -35,7 +35,6 @@ app.use(cors({
 app.use(bodyParser.json()); // Parse JSON request bodies
 app.use("/letter", express.static(path.join(__dirname, "public/letter")));
 app.use("/forms", express.static(path.join(__dirname, "public/forms")));
-
 app.use("/comment", express.static("public/comments"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/cso_logo", express.static("public/cso_logo"));
