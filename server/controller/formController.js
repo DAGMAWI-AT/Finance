@@ -238,6 +238,24 @@ exports.getUserSubmission = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+exports.getUsersSubmission = async (req, res) => {
+    await createApplicationFormTable();
+    try {
+        const { form_id } = req.query;
+        const { csoId } = req.params;
+
+        const [submission] = await pool.query(
+            'SELECT * FROM applicationForm WHERE cso_id = ? AND form_id = ?',
+            [csoId, form_id]
+        );
+
+        res.json(submission);
+    } catch (error) {
+        console.error('Error fetching user submission:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
 exports.getAllSubmission = async (req, res) => {
     await createApplicationFormTable();
 

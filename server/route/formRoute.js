@@ -37,7 +37,7 @@ router.delete('/:id', verifyToken, formController.deleteForm);
 
 
 /// application
-router.get('/form/application', verifyToken, formController.getUserSubmission);
+router.get('/form/application', verifyToken, formController.getUsersSubmission);
 router.get('/all/submission', verifyToken, formController.getAllSubmission);
 
 router.get('/application/submitted', verifyToken, formController.getAllApplicationForms);
