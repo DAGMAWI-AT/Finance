@@ -535,7 +535,7 @@ exports.submitApplicationForm = async (req, res) => {
             if (existingApp.length > 0 && existingApp[0].application_file) {
                 deleteFile(existingApp[0].application_file);
             }
-            const folderName = getFormFolder(form[0].form_name);
+            // const folderName = getFormFolder(form[0].form_name);
 
             // Save new file in form-specific directory
             try {
