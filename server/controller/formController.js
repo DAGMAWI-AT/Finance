@@ -173,49 +173,87 @@ exports.deleteForm = async (req, res) => {
 
 const publicDir = path.join(__dirname, '../public');
 
-// Ensure form-specific directory exists
+// Improved directory creation with better sanitization
 const ensureFormDir = (formName) => {
-    if (!formName) throw new Error('Form name is required');
-  
-    const safeFormName = formName.replace(/\s+/g, '_').toLowerCase();
-    const formDir = path.join(publicDir, 'forms', safeFormName);
-  
-    if (!fs.existsSync(formDir)) {
-      fs.mkdirSync(formDir, { recursive: true });
+    try {
+        if (!formName) throw new Error('Form name is required');
+        
+        // Enhanced sanitization
+        const safeFormName = sanitize(formName)
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9-_]/g, '')
+            .toLowerCase();
+
+        const formDir = path.join(publicDir, 'forms', safeFormName);
+        const formsRoot = path.join(publicDir, 'forms');
+
+        // Create root forms directory if needed
+        if (!fs.existsSync(formsRoot)) {
+            fs.mkdirSync(formsRoot, { recursive: true, mode: 0o755 });
+        }
+
+        // Create form-specific directory
+        if (!fs.existsSync(formDir)) {
+            fs.mkdirSync(formDir, { recursive: true, mode: 0o755 });
+        }
+
+        return formDir;
+    } catch (error) {
+        console.error('Directory creation failed:', error);
+        throw new Error('Could not create form directory');
     }
-  
-    return formDir;
-  };
-  
+};
 
-// Generate file path based on form name
+// Enhanced file path generator
 const generateFilePath = (formName, originalname) => {
-  const formDir = ensureFormDir(formName);
-  const ext = path.extname(originalname);
-  const filename = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}${ext}`;
-  return {
-    relativePath: path.join('forms', path.basename(formDir), filename),
-    absolutePath: path.join(formDir, filename)
-  };
+    try {
+        const formDir = ensureFormDir(formName);
+        const ext = path.extname(originalname);
+        const baseName = path.basename(originalname, ext);
+        
+        // Generate safe filename
+        const safeFilename = sanitize(
+            `${Date.now()}_${baseName.replace(/\s+/g, '_')}${ext}`
+        );
+
+        return {
+            relativePath: path.join('forms', path.basename(formDir), safeFilename),
+            absolutePath: path.join(formDir, safeFilename)
+        };
+    } catch (error) {
+        console.error('File path generation failed:', error);
+        throw new Error('Could not generate file path');
+    }
 };
 
-// Save file to form-specific directory
+// Improved file saver with error handling
 const saveFile = (fileBuffer, formName, originalname) => {
-  const { relativePath, absolutePath } = generateFilePath(formName, originalname);
-  fs.writeFileSync(absolutePath, fileBuffer);
-  return relativePath;
+    try {
+        const { relativePath, absolutePath } = generateFilePath(formName, originalname);
+        fs.writeFileSync(absolutePath, fileBuffer, { flag: 'wx' });
+        console.log(`File saved to: ${absolutePath}`);
+        return relativePath;
+    } catch (error) {
+        console.error('File save failed:', error);
+        throw new Error('Could not save file');
+    }
 };
 
-// Delete file from form-specific directory
+// Enhanced delete function
 const deleteFile = (filePath) => {
-  if (!filePath) return;
-  
-  const absolutePath = path.join(publicDir, filePath);
-  if (fs.existsSync(absolutePath)) {
-    fs.unlinkSync(absolutePath);
-  }
-};
+    try {
+        if (!filePath) return;
 
+        const absolutePath = path.join(publicDir, filePath);
+        if (fs.existsSync(absolutePath)) {
+            fs.unlinkSync(absolutePath);
+            console.log(`Deleted file: ${absolutePath}`);
+        }
+    } catch (error) {
+        console.error('File deletion failed:', error);
+        throw new Error('Could not delete file');
+    }
+};
 
 //////////////////////////
 
@@ -497,13 +535,18 @@ exports.submitApplicationForm = async (req, res) => {
             if (existingApp.length > 0 && existingApp[0].application_file) {
                 deleteFile(existingApp[0].application_file);
             }
+            const folderName = getFormFolder(form[0].form_name);
 
             // Save new file in form-specific directory
-            filePath = saveFile(
-                application_file.buffer,
-                form[0].form_name,
-                application_file.originalname
-            );
+            try {
+                filePath = saveFile(
+                    application_file.buffer,
+                    form[0].form_name,
+                    application_file.originalname
+                );
+            } catch (saveError) {
+                return res.status(500).json({ error: 'File save failed' });
+            }
         }
 
         // Check for existing application
