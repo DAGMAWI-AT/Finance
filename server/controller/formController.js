@@ -294,7 +294,7 @@ exports.getApplicationFormById = async (req, res) => {
         const params = [id];
 
         // Only add user_id condition for non-admin users
-        if (userRole !== 'admin' && userRole !== 'super_admin') {
+        if (userRole !== 'admin' && userRole !== 'sup_admin') {
             query += ' AND user_id = ?';
             params.push(userId);
         }
