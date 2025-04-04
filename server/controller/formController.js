@@ -249,7 +249,7 @@ exports.getAllSubmission = async (req, res) => {
             [userId]
         );
 
-        if (!staffCheck.length || staffCheck[0].role !== 'admin') {
+        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
         // const [submission] = await pool.query(

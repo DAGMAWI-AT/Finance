@@ -431,11 +431,11 @@ const updateStaff = async (req, res) => {
       `SELECT * FROM staff WHERE id = ? `,
       [id]
     );
-    
+
     if (staff[0].email_verified !== 1) {
       return res.status(403).json({
         success: false,
-        message: "Your account is unverified. pleas verify your account by email, Please contact support",
+        message: "this account is unverified. pleas verify this account by email, Please contact support",
       });
     }
     updateData.updated_at = new Date();
