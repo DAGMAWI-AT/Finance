@@ -16,7 +16,7 @@ exports.adminCreateForm = async (req, res) => {
             [userId]
         );
 
-        if (!staffCheck.length || staffCheck[0].role !== 'admin') {
+        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
 
@@ -361,7 +361,7 @@ exports.updateApplicationStatus = async (req, res) => {
         [userId]
       );
   
-      if (!staffCheck.length || staffCheck[0].role !== 'admin') {
+      if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
         return res.status(403).json({ error: 'Admin access required' });
       }
   
@@ -394,7 +394,7 @@ exports.updateApplicationUpdatePermission = async (req, res) => {
         [userId]
       );
   
-      if (!staffCheck.length || staffCheck[0].role !== 'admin') {
+      if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
         return res.status(403).json({ error: 'Admin access required' });
       }
   
