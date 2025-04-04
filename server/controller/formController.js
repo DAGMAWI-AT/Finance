@@ -238,7 +238,6 @@ exports.getUserSubmission = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
 exports.getUsersSubmission = async (req, res) => {
     await createApplicationFormTable();
     try {
