@@ -5,6 +5,7 @@ const path = require('path');
 const sanitize = require('sanitize-filename');
 const { notificationTable, createNotificationsTable } = require("../model/notification");
 
+
 exports.adminCreateForm = async (req, res) => {
     await createFormTable();
     try {
