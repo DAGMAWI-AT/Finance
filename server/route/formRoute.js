@@ -52,7 +52,7 @@ router.put('/applications/:id/update_permission', verifyToken, formController.up
 router.delete('/application/:id', verifyToken, formController.deleteApplicationForm);
 router.put('/application', verifyToken, upload.single('application_file'), formController.submitApplicationForm);
 
-router.get('/cso/application/:userId', verifyToken, formController.getApplicationFormsByUserId);
+router.get('/cso/application/:csoId', verifyToken, formController.getApplicationFormsByUserId);
 
 module.exports = router;
 

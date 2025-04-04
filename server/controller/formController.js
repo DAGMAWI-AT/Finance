@@ -322,21 +322,21 @@ exports.getApplicationFormsByUserId = async (req, res) => {
     await createApplicationFormTable();
 
     try {
-        const { userId } = req.params;
+        const { csoId } = req.params;
         const userRole = req.user.role;
 
-        if (!userId || isNaN(userId)) {
-            return res.status(400).json({ error: 'Invalid user ID' });
+        if (!csoId || isNaN(csoId)) {
+            return res.status(400).json({ error: 'Invalid CSO ID' });
         }
 
         let query = 'SELECT * FROM applicationForm WHERE cso_id = ?';
-        const params = [userId];
+        const params = [csoId];
 
 
 
         // For non-admin users, restrict to their own data
         if (userRole !== 'admin' && userRole !== 'super_admin') {
-            if (req.user.id !== parseInt(user_id)) {
+            if (req.user.id !== parseInt(id)) {
                 return res.status(403).json({ error: 'Unauthorized access' });
             }
         }
