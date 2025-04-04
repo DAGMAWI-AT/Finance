@@ -243,12 +243,13 @@ exports.getAllSubmission = async (req, res) => {
 
     try {
         const userId = req.user.id;
+        const userRole = req.user.role
         const [staffCheck] = await pool.query(
             'SELECT role FROM staff WHERE id = ?',
             [userId]
         );
 
-        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
+        if (!staffCheck.length || userRole !== 'admin' || userRole !== 'sup_admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
     const [submission] = await pool.execute(`SELECT * FROM applicationForm ORDER BY created_at DESC`);
