@@ -170,24 +170,23 @@ exports.deleteForm = async (req, res) => {
 //////////////////////////////////// file set in folder 
 // const fs = require('fs');
 // const path = require('path');
-const sanitize = require('sanitize-filename');
 
 const publicDir = path.join(__dirname, '../public');
 
 // Ensure form-specific directory exists
 const ensureFormDir = (formName) => {
-  if (!formName) throw new Error('Form name is required');
+    if (!formName) throw new Error('Form name is required');
   
-  // Sanitize form name to create safe directory name
-  const safeFormName = sanitize(formName.replace(/\s+/g, '_').toLowerCase());
-  const formDir = path.join(publicDir, 'forms', safeFormName);
+    const safeFormName = formName.replace(/\s+/g, '_').toLowerCase();
+    const formDir = path.join(publicDir, 'forms', safeFormName);
   
-  if (!fs.existsSync(formDir)) {
-    fs.mkdirSync(formDir, { recursive: true });
-  }
+    if (!fs.existsSync(formDir)) {
+      fs.mkdirSync(formDir, { recursive: true });
+    }
   
-  return formDir;
-};
+    return formDir;
+  };
+  
 
 // Generate file path based on form name
 const generateFilePath = (formName, originalname) => {
