@@ -37,21 +37,16 @@ router.delete('/:id', verifyToken, formController.deleteForm);
 
 
 /// application
-//cso get own data
 router.get('/form/application', verifyToken, formController.getUserSubmission);
+router.get('/all/submission', verifyToken, formController.getAllSubmission);
+
 router.get('/application/submitted', verifyToken, formController.getAllApplicationForms);
 router.get('/application/:id', verifyToken, formController.getApplicationFormById);
-
-
-//admin and super admin to get all submission data
-router.get('/all/submission', verifyToken, formController.getAllSubmission);
 router.put('/application/:id/status', verifyToken, formController.updateApplicationStatus);
-router.put('/applications/:id/update_permission', verifyToken, formController.updateApplicationUpdatePermission);
-
-
 router.delete('/application/:id', verifyToken, formController.deleteApplicationForm);
 router.put('/application', verifyToken, upload.single('application_file'), formController.submitApplicationForm);
 
+router.put('/applications/:id/update_permission', verifyToken, formController.updateApplicationUpdatePermission);
 router.get('/cso/application/:csoId', verifyToken, formController.getApplicationFormsByUserId);
 
 module.exports = router;
@@ -69,12 +64,19 @@ module.exports = router;
 // const fs = require('fs');
 // const path = require('path');
 
-// // Use memory storage
+// const fileFilter = (req, file, cb) => {
+//   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+//   if (allowedTypes.includes(file.mimetype)) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error('Invalid file type'), false);
+//   }
+// };
+
 // const upload = multer({
-//   storage: multer.memoryStorage(), // Store files in memory
-//   limits: {
-//     fileSize: 20 * 1024 * 1024, // Limit file size to 5MB
-//   },
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 20 * 1024 * 1024 },
+//   fileFilter
 // });
 // // router.post('/create', verifyToken, authorizeRoles('admin'), formController.adminCreateForm);
 // router.post('/create', verifyToken, formController.adminCreateForm);
@@ -89,16 +91,21 @@ module.exports = router;
 
 
 // /// application
+// //cso get own data
 // router.get('/form/application', verifyToken, formController.getUserSubmission);
-// router.get('/all/submission', verifyToken, formController.getAllSubmission);
-
 // router.get('/application/submitted', verifyToken, formController.getAllApplicationForms);
 // router.get('/application/:id', verifyToken, formController.getApplicationFormById);
+
+
+// //admin and super admin to get all submission data
+// router.get('/all/submission', verifyToken, formController.getAllSubmission);
 // router.put('/application/:id/status', verifyToken, formController.updateApplicationStatus);
+// router.put('/applications/:id/update_permission', verifyToken, formController.updateApplicationUpdatePermission);
+
+
 // router.delete('/application/:id', verifyToken, formController.deleteApplicationForm);
 // router.put('/application', verifyToken, upload.single('application_file'), formController.submitApplicationForm);
 
-// router.put('/applications/:id/update_permission', verifyToken, formController.updateApplicationUpdatePermission);
-// router.get('/cso/application/:userId', verifyToken, formController.getApplicationFormsByUserId);
+// router.get('/cso/application/:csoId', verifyToken, formController.getApplicationFormsByUserId);
 
 // module.exports = router;
