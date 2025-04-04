@@ -335,7 +335,7 @@ exports.getApplicationFormsByUserId = async (req, res) => {
 
 
         // For non-admin users, restrict to their own data
-        if (userRole !== 'admin' && userRole !== 'super_admin') {
+        if (userRole !== 'admin' && userRole !== 'sup_admin') {
             if (req.user.id !== parseInt(id)) {
                 return res.status(403).json({ error: 'Unauthorized access' });
             }
