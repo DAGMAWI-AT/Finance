@@ -37,16 +37,21 @@ router.delete('/:id', verifyToken, formController.deleteForm);
 
 
 /// application
-router.get('/form/application', verifyToken, formController.getUsersSubmission);
-router.get('/all/submission', verifyToken, formController.getAllSubmission);
-
+//cso get own data
+router.get('/form/application', verifyToken, formController.getUserSubmission);
 router.get('/application/submitted', verifyToken, formController.getAllApplicationForms);
 router.get('/application/:id', verifyToken, formController.getApplicationFormById);
+
+
+//admin and super admin to get all submission data
+router.get('/all/submission', verifyToken, formController.getAllSubmission);
 router.put('/application/:id/status', verifyToken, formController.updateApplicationStatus);
+router.put('/applications/:id/update_permission', verifyToken, formController.updateApplicationUpdatePermission);
+
+
 router.delete('/application/:id', verifyToken, formController.deleteApplicationForm);
 router.put('/application', verifyToken, upload.single('application_file'), formController.submitApplicationForm);
 
-router.put('/applications/:id/update_permission', verifyToken, formController.updateApplicationUpdatePermission);
 router.get('/cso/application/:userId', verifyToken, formController.getApplicationFormsByUserId);
 
 module.exports = router;

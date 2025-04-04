@@ -16,7 +16,7 @@ exports.adminCreateForm = async (req, res) => {
             [userId]
         );
 
-        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
+        if (!staffCheck.length || staffCheck[0].role !== 'admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
 
@@ -238,23 +238,6 @@ exports.getUserSubmission = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-exports.getUsersSubmission = async (req, res) => {
-    await createApplicationFormTable();
-    try {
-        const { form_id } = req.query;
-        const { csoId } = req.params;
-
-        const [submission] = await pool.query(
-            'SELECT * FROM applicationForm WHERE cso_id = ? AND form_id = ?',
-            [csoId, form_id]
-        );
-
-        res.json(submission);
-    } catch (error) {
-        console.error('Error fetching user submission:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
 exports.getAllSubmission = async (req, res) => {
     await createApplicationFormTable();
 
@@ -266,14 +249,14 @@ exports.getAllSubmission = async (req, res) => {
             [userId]
         );
 
-        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
+        if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
-        const [submission] = await pool.query(
-            'SELECT * FROM applicationForm WHERE user_id = ? AND form_id = ?',
-            [userId, form_id]
-        );
-    // const [submission] = await pool.execute(`SELECT * FROM applicationForm ORDER BY created_at DESC`);
+        // const [submission] = await pool.query(
+        //     'SELECT * FROM applicationForm WHERE user_id = ? AND form_id = ?',
+        //     [userId, form_id]
+        // );
+    const [submission] = await pool.execute(`SELECT * FROM applicationForm ORDER BY created_at DESC`);
 
         res.json(submission);
     } catch (error) {
@@ -337,6 +320,7 @@ exports.getApplicationFormById = async (req, res) => {
 };
 exports.getApplicationFormsByUserId = async (req, res) => {
     await createApplicationFormTable();
+
     try {
         const { userId } = req.params;
         const userRole = req.user.role;
@@ -348,15 +332,19 @@ exports.getApplicationFormsByUserId = async (req, res) => {
         let query = 'SELECT * FROM applicationForm WHERE cso_id = ?';
         const params = [userId];
 
+
+
         // For non-admin users, restrict to their own data
         if (userRole !== 'admin' && userRole !== 'super_admin') {
-            if (req.user.id !== parseInt(userId)) {
+            if (req.user.id !== parseInt(user_id)) {
                 return res.status(403).json({ error: 'Unauthorized access' });
             }
         }
 
         const [applicationForms] = await pool.execute(query, params);
-
+        if (applicationForms.length === 0) {
+            return res.status(404).json({ error: 'Application not found' });
+          }
         res.json(applicationForms);
     } catch (error) {
         console.error('Error fetching application forms:', error);
@@ -377,7 +365,7 @@ exports.updateApplicationStatus = async (req, res) => {
         [userId]
       );
   
-      if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
+      if (!staffCheck.length || staffCheck[0].role !== 'admin') {
         return res.status(403).json({ error: 'Admin access required' });
       }
   
@@ -410,7 +398,7 @@ exports.updateApplicationUpdatePermission = async (req, res) => {
         [userId]
       );
   
-      if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
+      if (!staffCheck.length || staffCheck[0].role !== 'admin') {
         return res.status(403).json({ error: 'Admin access required' });
       }
   
