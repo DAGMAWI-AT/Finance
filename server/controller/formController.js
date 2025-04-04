@@ -252,11 +252,11 @@ exports.getAllSubmission = async (req, res) => {
         if (!staffCheck.length || staffCheck[0].role !== 'admin' || staffCheck[0].role !== 'sup_admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
-        // const [submission] = await pool.query(
-        //     'SELECT * FROM applicationForm WHERE user_id = ? AND form_id = ?',
-        //     [userId, form_id]
-        // );
-    const [submission] = await pool.execute(`SELECT * FROM applicationForm ORDER BY created_at DESC`);
+        const [submission] = await pool.query(
+            'SELECT * FROM applicationForm WHERE user_id = ? AND form_id = ?',
+            [userId, form_id]
+        );
+    // const [submission] = await pool.execute(`SELECT * FROM applicationForm ORDER BY created_at DESC`);
 
         res.json(submission);
     } catch (error) {
