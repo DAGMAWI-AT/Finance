@@ -320,7 +320,6 @@ exports.getApplicationFormById = async (req, res) => {
 };
 exports.getApplicationFormsByUserId = async (req, res) => {
     await createApplicationFormTable();
-
     try {
         const { userId } = req.params;
         const userRole = req.user.role;
