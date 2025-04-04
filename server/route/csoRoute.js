@@ -33,7 +33,7 @@ const uploadMiddleware = (req, res, next) => {
 router.post("/register", uploadMiddleware, registerCso);
 router.get("/get", getCso);
 router.get("/:id", verifyToken, getCsoById);
-router.get("/res/:user_id", getCsoByRegistrationId);
+router.get("/res/:id", getCsoById);
 router.patch("/update/:id", upload, updateCso);
 router.delete("/remove/:id", deleteCso);
 
