@@ -107,7 +107,7 @@ const registerStaff = async (req, res) => {
 
       if (req.file) {
         const ext = path.extname(req.file.originalname);
-        filename = `${Date.now()}_${req.file.originalname}`;
+        filename = `${name + Date.now()}_${req.file.originalname}`;
         const savePath = path.join(__dirname, "../public/staff", filename);
         await saveFileFromBuffer(req.file.buffer, savePath);
       }
