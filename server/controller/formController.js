@@ -170,8 +170,7 @@ exports.deleteForm = async (req, res) => {
 
 
 //////////////////////////////////// file set in folder 
-// const fs = require('fs');
-// const path = require('path');
+
 
 const publicDir = path.join(__dirname, '../public');
 
@@ -233,7 +232,7 @@ const saveFile = (fileBuffer, formName, originalname) => {
     try {
         const { relativePath, absolutePath } = generateFilePath(formName, originalname);
         fs.writeFileSync(absolutePath, fileBuffer, { flag: 'wx' });
-        console.log(`File saved to: ${absolutePath}`);
+        // console.log(`File saved to: ${absolutePath}`);
         return relativePath;
     } catch (error) {
         console.error('File save failed:', error);
@@ -249,7 +248,7 @@ const deleteFile = (filePath) => {
         const absolutePath = path.join(publicDir, filePath);
         if (fs.existsSync(absolutePath)) {
             fs.unlinkSync(absolutePath);
-            console.log(`Deleted file: ${absolutePath}`);
+            // console.log(`Deleted file: ${absolutePath}`);
         }
     } catch (error) {
         console.error('File deletion failed:', error);

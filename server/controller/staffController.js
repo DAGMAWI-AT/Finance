@@ -17,20 +17,73 @@ app.use(express.json());
 app.use("/staff", express.static(path.join(__dirname, "public/staff")));
 const secretKey = process.env.JWT_secretKey;
 const restKey = process.env.JWT_SECRET;
-// if (!restKey) {
-//   throw new Error("JWT_SECRET is not set in the environment variables.");
-// }
-// Multer setup for file uploads
-const storageStaffPhoto = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "public/staff"),
-  filename: (req, file, cb) =>
-    cb(
-      null,
-      file.fieldname + "_" + Date.now() + path.extname(file.originalname)
-    ),
-});
-const uploadStaffPhoto = multer({ storage: storageStaffPhoto });
 
+// Multer setup for file uploads
+// const storageStaffPhoto = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "public/staff"),
+//   filename: (req, file, cb) =>
+//     cb(
+//       null,
+//       file.fieldname + "_" + Date.now() + path.extname(file.originalname)
+//     ),
+// });
+// const uploadStaffPhoto = multer({ storage: storageStaffPhoto });
+
+
+// Ensure directory exists function
+const ensureDirectoryExists = (directory) => {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+};
+
+const storageStaffPhoto = multer.diskStorage({
+  destination: (req, file, cb) => {
+    try {
+      const uploadDir = path.join(__dirname, '../public/staff');
+      ensureDirectoryExists(uploadDir);
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    try {
+      const uniqueSuffix = Date.now();
+      const ext = path.extname(file.originalname);
+      // Sanitize filename and preserve extension
+      const sanitizedName = file.originalname
+        .replace(ext, '')
+        .replace(/\s+/g, '_')
+        .replace(/[^\w\-]/g, '');
+      
+      cb(null, `staff_${sanitizedName}_${uniqueSuffix}${ext}`);
+    } catch (error) {
+      cb(error);
+    }
+  }
+});
+
+// File validation middleware
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    cb(null, true);
+  } else {
+    cb(new Error('Error: Only images are allowed (jpeg, jpg, png, gif)!'), false);
+  }
+};
+
+const uploadStaffPhoto = multer({
+  storage: storageStaffPhoto,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 // Setup nodemailer for sending emails
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -417,63 +470,161 @@ const getStaffById = async (req, res) => {
 };
 
 // Update Staff by ID
+// const updateStaff = async (req, res) => {
+//   const { id } = req.params;
+//   const updateData = req.body;
+
+//   try {
+//     if (Object.keys(updateData).length === 0) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "No data provided for update." });
+//     }
+//     const [staff] = await pool.query(
+//       `SELECT * FROM staff WHERE id = ? `,
+//       [id]
+//     );
+
+//     if (staff[0].email_verified !== 1) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "this account is unverified. pleas verify this account by email, Please contact support",
+//       });
+//     }
+//     updateData.updated_at = new Date();
+//     if (req.file) {
+//       updateData.photo = req.file.filename;
+
+//       const [oldStaffPhoto] = await pool.query(
+//         `SELECT photo FROM ${staffTable} WHERE id = ?`,
+//         [id]
+//       );
+//       if (oldStaffPhoto.length > 0 && oldStaffPhoto[0].photo) {
+//         const oldFilePath = path.join(
+//           __dirname,
+//           "../public/staff",
+//           oldStaffPhoto[0].photo
+//         );
+//         if (fs.existsSync(oldFilePath)) {
+//           fs.unlinkSync(oldFilePath);
+//         }
+//       }
+//     }
+
+//     const fields = Object.keys(updateData)
+//       .map((field) => `${field} = ?`)
+//       .join(", ");
+//     const values = Object.values(updateData);
+
+//     const [result] = await pool.query(
+//       `UPDATE ${staffTable} SET ${fields} WHERE id = ?`,
+//       [...values, id]
+//     );
+
+//     res.json({ success: true, message: "Staff updated successfully", result });
+//   } catch (error) {
+//     console.error("Error updating staff:", error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+const deleteUploadedFileIfExists = async (file) => {
+  if (file) {
+    const filePath = path.join(file.destination, file.filename);
+    if (fs.existsSync(filePath)) {
+      try {
+        await fs.promises.unlink(filePath);
+        console.log("Unlinked uploaded file:", filePath);
+      } catch (err) {
+        console.error("Error deleting uploaded file:", err);
+      }
+    }
+  }
+};
+
 const updateStaff = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
+  const uploadedFile = req.file;
+
+  if (!id) {
+    await deleteUploadedFileIfExists(uploadedFile);
+    return res.status(400).json({ success: false, message: "Staff ID is required" });
+  }
+
+  const [staff] = await pool.query(`SELECT * FROM ${staffTable} WHERE id = ?`, [id]);
+
+  if (!staff.length) {
+    await deleteUploadedFileIfExists(uploadedFile);
+    return res.status(404).json({ success: false, message: "Staff member not found" });
+  }
+
+  if (staff[0].email_verified !== 1) {
+    await deleteUploadedFileIfExists(uploadedFile);
+    return res.status(403).json({
+      success: false,
+      message: "Unverified account. Please verify via email before updating."
+    });
+  }
 
   try {
-    if (Object.keys(updateData).length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No data provided for update." });
+    // Prepare allowed fields
+    const allowedFields = ["name", "position", "photo", "updated_at"];
+    const fieldsToUpdate = {};
+
+    allowedFields.forEach(field => {
+      if (updateData[field]) fieldsToUpdate[field] = updateData[field];
+    });
+
+    if (uploadedFile) {
+      fieldsToUpdate.photo = uploadedFile.filename;
     }
-    const [staff] = await pool.query(
-      `SELECT * FROM staff WHERE id = ? `,
-      [id]
+
+    fieldsToUpdate.updated_at = new Date();
+
+    if (Object.keys(fieldsToUpdate).length === 0) {
+      throw new Error("No valid fields provided for update.");
+    }
+
+    // Update database
+    const updateFields = Object.keys(fieldsToUpdate).map(field => `${field} = ?`).join(", ");
+    const updateValues = [...Object.values(fieldsToUpdate), id];
+
+    const [result] = await pool.query(
+      `UPDATE ${staffTable} SET ${updateFields} WHERE id = ?`,
+      updateValues
     );
 
-    if (staff[0].email_verified !== 1) {
-      return res.status(403).json({
-        success: false,
-        message: "this account is unverified. pleas verify this account by email, Please contact support",
-      });
+    if (result.affectedRows === 0) {
+      throw new Error("Update operation failed.");
     }
-    updateData.updated_at = new Date();
-    if (req.file) {
-      updateData.photo = req.file.filename;
 
-      const [oldStaffPhoto] = await pool.query(
-        `SELECT photo FROM ${staffTable} WHERE id = ?`,
-        [id]
-      );
-      if (oldStaffPhoto.length > 0 && oldStaffPhoto[0].photo) {
-        const oldFilePath = path.join(
-          __dirname,
-          "../public/staff",
-          oldStaffPhoto[0].photo
-        );
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
-        }
+    // Delete old photo if a new one was uploaded
+    if (uploadedFile && staff[0].photo) {
+      const oldPhotoPath = path.join(__dirname, "../public/staff", staff[0].photo);
+      if (fs.existsSync(oldPhotoPath)) {
+        await fs.promises.unlink(oldPhotoPath);
       }
     }
 
-    const fields = Object.keys(updateData)
-      .map((field) => `${field} = ?`)
-      .join(", ");
-    const values = Object.values(updateData);
+    return res.json({
+      success: true,
+      message: "Staff updated successfully",
+      data: result
+    });
 
-    const [result] = await pool.query(
-      `UPDATE ${staffTable} SET ${fields} WHERE id = ?`,
-      [...values, id]
-    );
-
-    res.json({ success: true, message: "Staff updated successfully", result });
   } catch (error) {
-    console.error("Error updating staff:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    // Delete newly uploaded file if any error occurs in try
+    await deleteUploadedFileIfExists(uploadedFile);
+
+    console.error("Update staff error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error"
+    });
   }
 };
+
+
 async function updatePassword(req, res) {
   try {
     const staffId = req.user.id; // This should now be correctly set from the token
@@ -544,7 +695,17 @@ const deleteStaff = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Staff not found" });
     }
-
+    if (oldStaffPhoto.length > 0 && oldStaffPhoto[0].photo) {
+      const oldFilePath = path.join(
+        __dirname,
+        "../public/staff",
+        oldStaffPhoto[0].photo
+      );
+      
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath); // Consider using fs.promises.unlink for async
+      }
+    }
     res.json({ success: true, message: "Staff deleted successfully." });
   } catch (error) {
     console.error("Error deleting staff:", error);
