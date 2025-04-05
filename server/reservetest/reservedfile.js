@@ -1,3 +1,4 @@
+
 const deleteUploadedFileIfExists = async (file) => {
     if (file) {
       const filePath = path.join(file.destination, file.filename);
@@ -95,4 +96,69 @@ const deleteUploadedFileIfExists = async (file) => {
     }
   };
   
-  
+// const updateStaff = async (req, res) => {
+//   const { id } = req.params;
+//   const updateData = req.body;
+
+//   try {
+//     if (Object.keys(updateData).length === 0) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "No data provided for update." });
+//     }
+//     const [staff] = await pool.query(
+//       `SELECT * FROM staff WHERE id = ? `,
+//       [id]
+//     );
+
+//     if (staff[0].email_verified !== 1) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "this account is unverified. pleas verify this account by email, Please contact support",
+//       });
+//     }
+//     updateData.updated_at = new Date();
+//     if (req.file) {
+//       updateData.photo = req.file.filename;
+
+//       const [oldStaffPhoto] = await pool.query(
+//         `SELECT photo FROM ${staffTable} WHERE id = ?`,
+//         [id]
+//       );
+//       if (oldStaffPhoto.length > 0 && oldStaffPhoto[0].photo) {
+//         const oldFilePath = path.join(
+//           __dirname,
+//           "../public/staff",
+//           oldStaffPhoto[0].photo
+//         );
+//         if (fs.existsSync(oldFilePath)) {
+//           fs.unlinkSync(oldFilePath);
+//         }
+//       }
+//     }
+
+//     const fields = Object.keys(updateData)
+//       .map((field) => `${field} = ?`)
+//       .join(", ");
+//     const values = Object.values(updateData);
+
+//     const [result] = await pool.query(
+//       `UPDATE ${staffTable} SET ${fields} WHERE id = ?`,
+//       [...values, id]
+//     );
+
+//     res.json({ success: true, message: "Staff updated successfully", result });
+//   } catch (error) {
+//     console.error("Error updating staff:", error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };  // Multer setup for file uploads
+// const storageStaffPhoto = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "public/staff"),
+//   filename: (req, file, cb) =>
+//     cb(
+//       null,
+//       file.fieldname + "_" + Date.now() + path.extname(file.originalname)
+//     ),
+// });
+// const uploadStaffPhoto = multer({ storage: storageStaffPhoto });
