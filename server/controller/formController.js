@@ -343,7 +343,7 @@ exports.getApplicationFormById = async (req, res) => {
 
         if (applicationForm.length === 0) {
             return res.status(404).json({ 
-                error: userRole === 'admin' || userRole === 'super_admin' 
+                error: userRole === 'admin' || userRole === 'sup_admin' 
                     ? 'Application form not found' 
                     : 'Application form not found or unauthorized' 
             });
@@ -469,7 +469,7 @@ exports.deleteApplicationForm = async (req, res) => {
         let query = 'SELECT application_file FROM applicationForm WHERE id = ?';
         const params = [id];
 
-        if (userRole !== 'admin' && userRole !== 'super_admin') {
+        if (userRole !== 'admin' && userRole !== 'sup_admin') {
             query += ' AND user_id = ?';
             params.push(userId);
         }
@@ -478,7 +478,7 @@ exports.deleteApplicationForm = async (req, res) => {
         
         if (appToDelete.length === 0) {
             return res.status(404).json({ 
-                error: userRole === 'admin' || userRole === 'super_admin' 
+                error: userRole === 'admin' || userRole === 'sup_admin' 
                     ? 'Application form not found' 
                     : 'Application form not found or not authorized' 
             });
