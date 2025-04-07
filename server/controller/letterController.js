@@ -4,173 +4,67 @@ const path = require('path');
 const fs = require('fs');
 const { createLettersTable } = require('../model/letter');
 
-// Configure file storage
-// const storage = multer.diskStorage({
-//     destination: (req, file, cb) => {
-//         const uploadDir = 'public/letter';
-//         if (!fs.existsSync(uploadDir)) {
-//             fs.mkdirSync(uploadDir, { recursive: true });
-//         }
-//         cb(null, uploadDir);
-//     },
-//     filename: (req, file, cb) => {
-//         cb(null, `${Date.now()}-${file.originalname}`);
-//     }
-// });
+// Upload middleware
+exports.uploadMiddleware = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const allowed = /pdf|jpeg|jpg|png|doc|docx/;
+    const validMime = allowed.test(file.mimetype);
+    const validExt = allowed.test(path.extname(file.originalname).toLowerCase());
+    if (validMime && validExt) return cb(null, true);
+    cb(new Error('Only PDF, DOC, DOCX, JPG, and PNG files are allowed'));
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }
+}).single('attachment');
 
-// exports.uploadMiddleware = multer({ 
-//     storage: storage,
-//     fileFilter: (req, file, cb) => {
-//         const filetypes = /pdf|jpeg|jpg|png/;
-//         const mimetype = filetypes.test(file.mimetype);
-//         const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        
-//         if (mimetype && extname) {
-//             return cb(null, true);
-//         }
-//         cb(new Error('Only PDF, JPEG, and PNG files are allowed'));
-//     },
-//     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
-// });
-
-
-// Helper function to safely prepare selected_csos data
+// Helper to prepare selected_csos field
 const prepareSelectedCsos = (input) => {
   if (!input) return null;
-  
   try {
-    // Handle case where input is already an array
-    if (Array.isArray(input)) {
-      return input.length > 0 ? JSON.stringify(input) : null;
-    }
-    
-    // Handle case where input is a number
-    if (typeof input === 'number') {
-      return JSON.stringify([input]);
-    }
-    
-    // Handle case where input is a string
+    if (Array.isArray(input)) return input.length ? JSON.stringify(input) : null;
+    if (typeof input === 'number') return JSON.stringify([input]);
     if (typeof input === 'string') {
-      // If it's a JSON string, parse and re-stringify
       if (input.startsWith('[') || input.startsWith('{')) {
         const parsed = JSON.parse(input);
-        return Array.isArray(parsed) && parsed.length > 0 ? JSON.stringify(parsed) : null;
+        return Array.isArray(parsed) && parsed.length ? JSON.stringify(parsed) : null;
       }
-      // If it's a single number as string
-      if (/^\d+$/.test(input)) {
-        return JSON.stringify([parseInt(input, 10)]);
-      }
+      if (/^\d+$/.test(input)) return JSON.stringify([parseInt(input, 10)]);
     }
-    
     return null;
   } catch (e) {
-    console.error('Error preparing selectedCsos:', e);
+    console.error('prepareSelectedCsos error:', e);
     return null;
   }
 };
 
+// Save uploaded file to disk
+const saveAttachment = (req) => {
+  if (!req.file) return null;
 
-// Configure file storage with 'attachment' field name
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = 'public/letter';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    }
-});
+  const folderPath = path.join(__dirname, '..', 'public', 'letter');
+  if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
-exports.uploadMiddleware = multer({ 
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        const filetypes = /pdf|jpeg|jpg|png|doc|docx/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Only PDF, DOC, DOCX, JPG, and PNG files are allowed'));
-    },
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
-}).single('attachment'); // Using 'attachment' to match database fields
+  const fileName = `${Date.now()}-${req.file.originalname}`;
+  const filePath = path.join(folderPath, fileName);
 
-// Update letter controller
-exports.updateLetter = async (req, res) => {
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
+  fs.writeFileSync(filePath, req.file.buffer);
 
-        // Get current letter data
-        const [currentLetter] = await connection.query(
-            `SELECT attachment_path FROM letters WHERE id = ?`,
-            [req.params.id]
-        );
-
-        const { title, summary, type, sendToAll, selectedCsos } = req.body;
-        const letterId = req.params.id;
-
-        const updateData = {
-            title,
-            summary,
-            type,
-            send_to_all: sendToAll === 'true',
-            selected_csos: prepareSelectedCsos(selectedCsos),
-            updated_at: new Date()
-        };
-
-        // Handle file upload if present
-        if (req.file) {
-            // Delete old file if exists
-            if (currentLetter.length > 0 && currentLetter[0].attachment_path) {
-                const oldFilePath = path.join('public', currentLetter[0].attachment_path);
-                if (fs.existsSync(oldFilePath)) {
-                    fs.unlinkSync(oldFilePath);
-                }
-            }
-            
-            updateData.attachment_path = req.file.path.replace('public', '');
-            updateData.attachment_name = req.file.originalname;
-            updateData.attachment_mimetype = req.file.mimetype;
-        }
-
-        const [result] = await connection.query(
-            `UPDATE letters SET ? WHERE id = ?`,
-            [updateData, letterId]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Letter not found'
-            });
-        }
-
-        await connection.commit();
-        res.status(200).json({
-            success: true,
-            data: {
-                id: letterId,
-                ...updateData
-            }
-        });
-    } catch (error) {
-        await connection.rollback();
-        console.error('Error updating letter:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update letter',
-            error: error.message
-        });
-    } finally {
-        connection.release();
-    }
+  return {
+    attachment_path: `letter/${fileName}`,
+    attachment_name: req.file.originalname,
+    attachment_mimetype: req.file.mimetype
+  };
 };
-// Create a new letter
+
+// Delete file from disk
+const deleteAttachment = (relativePath) => {
+  const filePath = path.join(__dirname, '..', 'public', relativePath);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+};
+
+// CREATE
 exports.createLetter = async (req, res) => {
   const connection = await pool.getConnection();
   try {
@@ -180,31 +74,19 @@ exports.createLetter = async (req, res) => {
     const { title, summary, type, sendToAll, selectedCsos } = req.body;
     const userId = req.user.id;
 
-    // Prepare the letter data
     const letterData = {
       title,
       summary,
       type,
       send_to_all: sendToAll === 'true',
       selected_csos: prepareSelectedCsos(selectedCsos),
-      created_by: userId
+      created_by: userId,
+      ...saveAttachment(req)
     };
 
-    // Handle file upload if present
-    if (req.file) {
-      letterData.attachment_path = req.file.filename;
-      letterData.attachment_name = req.file.originalname;
-      letterData.attachment_mimetype = req.file.mimetype;
-    }
-
-    // Execute the query with proper parameter binding
-    const [result] = await connection.query(
-      `INSERT INTO letters SET ?`,
-      [letterData]
-    );
-
+    const [result] = await connection.query(`INSERT INTO letters SET ?`, [letterData]);
     await connection.commit();
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -215,20 +97,80 @@ exports.createLetter = async (req, res) => {
     });
   } catch (error) {
     await connection.rollback();
-    console.error('Error creating letter:', error);
-    
-    let errorMessage = 'Failed to create letter';
-    if (error.code === 'ER_INVALID_JSON_TEXT') {
-      errorMessage = 'Invalid organization selection format';
-    } else if (error.sqlMessage) {
-      errorMessage = `Database error: ${error.sqlMessage}`;
+    console.error('Create letter error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create letter', error: error.message });
+  } finally {
+    connection.release();
+  }
+};
+
+// UPDATE
+exports.updateLetter = async (req, res) => {
+  try {
+    const letterId = req.params.id;
+    const [currentLetter] = await pool.query(`SELECT attachment_path FROM letters WHERE id = ?`, [letterId]);
+
+    if (!currentLetter.length) {
+      return res.status(404).json({ success: false, message: 'Letter not found' });
     }
 
-    res.status(500).json({
-      success: false,
-      message: errorMessage,
-      error: error.message
-    });
+    const { title, summary, type, sendToAll, selectedCsos } = req.body;
+    const updateData = {
+      title,
+      summary,
+      type,
+      send_to_all: sendToAll === 'true',
+      selected_csos: prepareSelectedCsos(selectedCsos),
+      updated_at: new Date()
+    };
+
+    if (req.file) {
+      if (currentLetter[0].attachment_path) {
+        deleteAttachment(currentLetter[0].attachment_path);
+      }
+      Object.assign(updateData, saveAttachment(req));
+    }
+
+    const [result] = await pool.query(`UPDATE letters SET ? WHERE id = ?`, [updateData, letterId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Letter not updated' });
+    }
+
+    res.status(200).json({ success: true, data: { id: letterId, ...updateData } });
+  } catch (error) {
+    console.error('Update letter error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update letter', error: error.message });
+  }
+};
+
+// DELETE
+exports.deleteLetter = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [letters] = await connection.query(`SELECT attachment_path FROM letters WHERE id = ?`, [req.params.id]);
+    if (!letters.length) {
+      return res.status(404).json({ success: false, message: 'Letter not found' });
+    }
+
+    const [result] = await connection.query(`DELETE FROM letters WHERE id = ?`, [req.params.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Letter not deleted' });
+    }
+
+    if (letters[0].attachment_path) {
+      deleteAttachment(letters[0].attachment_path);
+    }
+
+    await connection.commit();
+    res.status(200).json({ success: true, message: 'Letter deleted successfully' });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Delete letter error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete letter', error: error.message });
   } finally {
     connection.release();
   }
@@ -279,11 +221,10 @@ exports.getAllLetters = async (req, res) => {
   }
 };
 
-// Get single letter by ID
 exports.getLetterById = async (req, res) => {
   try {
-    const [letters] = await pool.query(`
-      SELECT 
+    const [letters] = await pool.query(
+      `SELECT 
         l.id, l.title, l.summary, l.type,
         l.send_to_all AS sendToAll,
         l.selected_csos AS selectedCsos,
@@ -295,8 +236,9 @@ exports.getLetterById = async (req, res) => {
         s.name AS createdBy
       FROM letters l
       LEFT JOIN staff s ON l.created_by = s.id
-      WHERE l.id = ?
-    `, [req.params.id]);
+      WHERE l.id = ?`,
+      [req.params.id]
+    );
 
     if (!letters || letters.length === 0) {
       return res.status(404).json({
@@ -308,9 +250,16 @@ exports.getLetterById = async (req, res) => {
     const parseSelectedCsos = (input) => {
       if (!input) return [];
       try {
-        const parsed = JSON.parse(input);
-        return Array.isArray(parsed) ? parsed : [parsed];
+        // Handle both stringified JSON and direct array values
+        if (typeof input === 'string') {
+          // Remove any extra quotes if they exist
+          const cleaned = input.replace(/^"+|"+$/g, '');
+          const parsed = JSON.parse(cleaned);
+          return Array.isArray(parsed) ? parsed : [parsed];
+        }
+        return Array.isArray(input) ? input : [input];
       } catch (e) {
+        console.error('Error parsing selectedCsos:', e);
         return [];
       }
     };
@@ -320,7 +269,11 @@ exports.getLetterById = async (req, res) => {
       success: true,
       data: {
         ...letter,
-        selectedCsos: parseSelectedCsos(letter.selectedCsos)
+        selectedCsos: parseSelectedCsos(letter.selectedCsos),
+        // Ensure consistent field names
+        createdBy: letter.createdBy || '1', // Fallback to original ID if name not found
+        createdAt: letter.createdAt,
+        updatedAt: letter.updatedAt
       }
     });
   } catch (error) {
@@ -332,123 +285,60 @@ exports.getLetterById = async (req, res) => {
     });
   }
 };
+// Get single letter by ID
+// exports.getLetterById = async (req, res) => {
+//   try {
+//     const [letters] = await pool.query(`
+//       SELECT 
+//         l.id, l.title, l.summary, l.type,
+//         l.send_to_all AS sendToAll,
+//         l.selected_csos AS selectedCsos,
+//         l.attachment_path AS attachmentPath,
+//         l.attachment_name AS attachmentName,
+//         l.attachment_mimetype AS attachmentMimetype,
+//         l.created_at AS createdAt,
+//         l.updated_at AS updatedAt,
+//         s.name AS createdBy
+//       FROM letters l
+//       LEFT JOIN staff s ON l.created_by = s.id
+//       WHERE l.id = ?
+//     `, [req.params.id]);
 
-
-// // Update letter
-// exports.updateLetter = async (req, res) => {
-//     const connection = await pool.getConnection();
-//     try {
-//         await connection.beginTransaction();
-
-//         const { title, summary, type, sendToAll, selectedCsos } = req.body;
-//         const letterId = req.params.id;
-
-//         const updateData = {
-//             title,
-//             summary,
-//             type,
-//             send_to_all: sendToAll === 'true',
-//             selected_csos: prepareSelectedCsos(selectedCsos),
-//             updated_at: new Date()
-//         };
-
-//         // If new file uploaded, update file info
-//         if (req.file) {
-//             updateData.attachment_path = req.file.filename;
-//             updateData.attachment_name = req.file.originalname;
-//             updateData.attachment_mimetype = req.file.mimetype;
-//         }
-
-//         const [result] = await connection.query(
-//             `UPDATE letters SET ? WHERE id = ?`,
-//             [updateData, letterId]
-//         );
-
-//         if (result.affectedRows === 0) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Letter not found'
-//             });
-//         }
-
-//         await connection.commit();
-//         res.status(200).json({
-//             success: true,
-//             data: {
-//                 id: letterId,
-//                 ...updateData
-//             }
-//         });
-//     } catch (error) {
-//         await connection.rollback();
-//         console.error('Error updating letter:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Failed to update letter',
-//             error: error.message
-//         });
-//     } finally {
-//         connection.release();
+//     if (!letters || letters.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Letter not found'
+//       });
 //     }
+
+//     const parseSelectedCsos = (input) => {
+//       if (!input) return [];
+//       try {
+//         const parsed = JSON.parse(input);
+//         return Array.isArray(parsed) ? parsed : [parsed];
+//       } catch (e) {
+//         return [];
+//       }
+//     };
+
+//     const letter = letters[0];
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         ...letter,
+//         selectedCsos: parseSelectedCsos(letter.selectedCsos)
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error fetching letter:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch letter',
+//       error: error.message
+//     });
+//   }
 // };
 
-// Delete letter
-exports.deleteLetter = async (req, res) => {
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
-
-        // First get the letter to check for attachment
-        const [letters] = await connection.query(
-            `SELECT attachment_path FROM letters WHERE id = ?`,
-            [req.params.id]
-        );
-
-        if (letters.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Letter not found'
-            });
-        }
-
-        // Delete the letter
-        const [result] = await connection.query(
-            `DELETE FROM letters WHERE id = ?`,
-            [req.params.id]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Letter not found'
-            });
-        }
-
-        // If there was an attachment, delete the file
-        if (letters[0].attachment_path) {
-            const filePath = `public${letters[0].attachment_path}`;
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-        }
-
-        await connection.commit();
-        res.status(200).json({
-            success: true,
-            message: 'Letter deleted successfully'
-        });
-    } catch (error) {
-        await connection.rollback();
-        console.error('Error deleting letter:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete letter',
-            error: error.message
-        });
-    } finally {
-        connection.release();
-    }
-};
 
 
 // Get letters by CSO organization

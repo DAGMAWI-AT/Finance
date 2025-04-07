@@ -162,3 +162,263 @@ const deleteUploadedFileIfExists = async (file) => {
 //     ),
 // });
 // const uploadStaffPhoto = multer({ storage: storageStaffPhoto });
+
+
+
+
+
+
+
+
+
+
+// // Update letter
+// exports.updateLetter = async (req, res) => {
+//     const connection = await pool.getConnection();
+//     try {
+//         await connection.beginTransaction();
+
+//         const { title, summary, type, sendToAll, selectedCsos } = req.body;
+//         const letterId = req.params.id;
+
+//         const updateData = {
+//             title,
+//             summary,
+//             type,
+//             send_to_all: sendToAll === 'true',
+//             selected_csos: prepareSelectedCsos(selectedCsos),
+//             updated_at: new Date()
+//         };
+
+//         // If new file uploaded, update file info
+//         if (req.file) {
+//             updateData.attachment_path = req.file.filename;
+//             updateData.attachment_name = req.file.originalname;
+//             updateData.attachment_mimetype = req.file.mimetype;
+//         }
+
+//         const [result] = await connection.query(
+//             `UPDATE letters SET ? WHERE id = ?`,
+//             [updateData, letterId]
+//         );
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Letter not found'
+//             });
+//         }
+
+//         await connection.commit();
+//         res.status(200).json({
+//             success: true,
+//             data: {
+//                 id: letterId,
+//                 ...updateData
+//             }
+//         });
+//     } catch (error) {
+//         await connection.rollback();
+//         console.error('Error updating letter:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Failed to update letter',
+//             error: error.message
+//         });
+//     } finally {
+//         connection.release();
+//     }
+// };
+
+
+exports.updateLetter = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+      await connection.beginTransaction();
+
+      // Get current letter data
+      const [currentLetter] = await connection.query(
+          `SELECT attachment_path FROM letters WHERE id = ?`,
+          [req.params.id]
+      );
+
+      const { title, summary, type, sendToAll, selectedCsos } = req.body;
+      const letterId = req.params.id;
+
+      const updateData = {
+          title,
+          summary,
+          type,
+          send_to_all: sendToAll === 'true',
+          selected_csos: prepareSelectedCsos(selectedCsos),
+          updated_at: new Date()
+      };
+
+      // Handle file upload if present
+      if (req.file) {
+          // Delete old file if exists
+          if (currentLetter.length > 0 && currentLetter[0].attachment_path) {
+              const oldFilePath = path.join('public', currentLetter[0].attachment_path);
+              if (fs.existsSync(oldFilePath)) {
+                  fs.unlinkSync(oldFilePath);
+              }
+          }
+          
+          updateData.attachment_path = req.file.path.replace('public', '');
+          updateData.attachment_name = req.file.originalname;
+          updateData.attachment_mimetype = req.file.mimetype;
+      }
+
+      const [result] = await connection.query(
+          `UPDATE letters SET ? WHERE id = ?`,
+          [updateData, letterId]
+      );
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({
+              success: false,
+              message: 'Letter not found'
+          });
+      }
+
+      await connection.commit();
+      res.status(200).json({
+          success: true,
+          data: {
+              id: letterId,
+              ...updateData
+          }
+      });
+  } catch (error) {
+      await connection.rollback();
+      console.error('Error updating letter:', error);
+      res.status(500).json({
+          success: false,
+          message: 'Failed to update letter',
+          error: error.message
+      });
+  } finally {
+      connection.release();
+  }
+};
+// Create a new letter
+exports.createLetter = async (req, res) => {
+const connection = await pool.getConnection();
+try {
+  await connection.beginTransaction();
+  await createLettersTable();
+
+  const { title, summary, type, sendToAll, selectedCsos } = req.body;
+  const userId = req.user.id;
+
+  // Prepare the letter data
+  const letterData = {
+    title,
+    summary,
+    type,
+    send_to_all: sendToAll === 'true',
+    selected_csos: prepareSelectedCsos(selectedCsos),
+    created_by: userId
+  };
+
+  // Handle file upload if present
+  if (req.file) {
+    letterData.attachment_path = req.file.filename;
+    letterData.attachment_name = req.file.originalname;
+    letterData.attachment_mimetype = req.file.mimetype;
+  }
+
+  // Execute the query with proper parameter binding
+  const [result] = await connection.query(
+    `INSERT INTO letters SET ?`,
+    [letterData]
+  );
+
+  await connection.commit();
+  
+  res.status(201).json({
+    success: true,
+    data: {
+      id: result.insertId,
+      ...letterData,
+      selectedCsos: letterData.selected_csos ? JSON.parse(letterData.selected_csos) : []
+    }
+  });
+} catch (error) {
+  await connection.rollback();
+  console.error('Error creating letter:', error);
+  
+  let errorMessage = 'Failed to create letter';
+  if (error.code === 'ER_INVALID_JSON_TEXT') {
+    errorMessage = 'Invalid organization selection format';
+  } else if (error.sqlMessage) {
+    errorMessage = `Database error: ${error.sqlMessage}`;
+  }
+
+  res.status(500).json({
+    success: false,
+    message: errorMessage,
+    error: error.message
+  });
+} finally {
+  connection.release();
+}
+};
+
+// Delete letter
+exports.deleteLetter = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+      await connection.beginTransaction();
+
+      // First get the letter to check for attachment
+      const [letters] = await connection.query(
+          `SELECT attachment_path FROM letters WHERE id = ?`,
+          [req.params.id]
+      );
+
+      if (letters.length === 0) {
+          return res.status(404).json({
+              success: false,
+              message: 'Letter not found'
+          });
+      }
+
+      // Delete the letter
+      const [result] = await connection.query(
+          `DELETE FROM letters WHERE id = ?`,
+          [req.params.id]
+      );
+
+      if (result.affectedRows === 0) {
+          return res.status(404).json({
+              success: false,
+              message: 'Letter not found'
+          });
+      }
+
+      // If there was an attachment, delete the file
+      if (letters[0].attachment_path) {
+          const filePath = `public${letters[0].attachment_path}`;
+          if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+          }
+      }
+
+      await connection.commit();
+      res.status(200).json({
+          success: true,
+          message: 'Letter deleted successfully'
+      });
+  } catch (error) {
+      await connection.rollback();
+      console.error('Error deleting letter:', error);
+      res.status(500).json({
+          success: false,
+          message: 'Failed to delete letter',
+          error: error.message
+      });
+  } finally {
+      connection.release();
+  }
+};

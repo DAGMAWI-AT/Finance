@@ -100,9 +100,7 @@ const registerStaff = async (req, res) => {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      // if (req.file) {
-      //   req.body.photo = req.file.filename;
-      // }
+     
       let filename = null;
 
       if (req.file) {
@@ -292,8 +290,9 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password
 
+
+// Reset Password
 const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
@@ -371,8 +370,7 @@ const getStaffById = async (req, res) => {
   }
 };
 
-// Helper to save buffer to disk
-
+// update staff data
 const updateStaff = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -380,7 +378,9 @@ const updateStaff = async (req, res) => {
 
   try {
     if (!id) {
-      return res.status(400).json({ success: false, message: "Staff ID is required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Staff ID is required." });
     }
 
     if (Object.keys(updateData).length === 0 && !uploadedFile) {
@@ -390,16 +390,22 @@ const updateStaff = async (req, res) => {
       });
     }
 
-    const [staff] = await pool.query(`SELECT * FROM ${staffTable} WHERE id = ?`, [id]);
+    const [staff] = await pool.query(
+      `SELECT * FROM ${staffTable} WHERE id = ?`,
+      [id]
+    );
 
     if (!staff.length) {
-      return res.status(404).json({ success: false, message: "Staff not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Staff not found." });
     }
 
     if (staff[0].email_verified !== 1) {
       return res.status(403).json({
         success: false,
-        message: "This account is unverified. Please verify by email or contact support.",
+        message:
+          "This account is unverified. Please verify by email or contact support.",
       });
     }
 
@@ -416,7 +422,11 @@ const updateStaff = async (req, res) => {
       updateData.photo = newFilename;
 
       if (staff[0].photo) {
-        const oldFilePath = path.join(__dirname, "../public/staff", staff[0].photo);
+        const oldFilePath = path.join(
+          __dirname,
+          "../public/staff",
+          staff[0].photo
+        );
         if (fs.existsSync(oldFilePath)) {
           await fs.promises.unlink(oldFilePath);
         }
@@ -433,18 +443,27 @@ const updateStaff = async (req, res) => {
       [...values, id]
     );
 
-    return res.json({ success: true, message: "Staff updated successfully", result });
-
+    return res.json({
+      success: true,
+      message: "Staff updated successfully",
+      result,
+    });
   } catch (error) {
     if (uploadedFile) {
-      const failedPath = path.join(__dirname, "../public/staff", `${Date.now()}_${uploadedFile.originalname}`);
+      const failedPath = path.join(
+        __dirname,
+        "../public/staff",
+        `${Date.now()}_${uploadedFile.originalname}`
+      );
       if (fs.existsSync(failedPath)) {
         await fs.promises.unlink(failedPath);
       }
     }
 
     console.error("Error updating staff:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -526,9 +545,9 @@ const deleteStaff = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Staff not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Staff not found",
       });
     }
 
@@ -539,25 +558,24 @@ const deleteStaff = async (req, res) => {
         "../public/staff",
         oldStaffPhoto[0].photo
       );
-      
+
       if (fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath); // Consider using fs.promises.unlink for async
       }
     }
 
-    res.json({ 
-      success: true, 
-      message: "Staff deleted successfully." 
+    res.json({
+      success: true,
+      message: "Staff deleted successfully.",
     });
   } catch (error) {
     console.error("Error deleting staff:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Internal Server Error" 
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
     });
   }
 };
-
 
 // Verify Staff Email
 const verifyEmail = async (req, res) => {
