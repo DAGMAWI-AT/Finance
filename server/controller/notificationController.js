@@ -55,31 +55,32 @@ const getNotificationsByUserController = async (req, res) => {
   try {
     await createNotificationsTable();
     const { registrationId } = req.params;
+
     const [notifications] = await pool.query(
-      `SELECT * FROM notifications WHERE registration_id = ? ORDER BY timestamp DESC`,
+      `SELECT * FROM notifications 
+       WHERE registration_id = ? 
+       OR application_id = 0 
+       ORDER BY timestamp DESC`,
       [registrationId]
     );
 
     if (notifications.length === 0) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No notifications found for this user.",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "No notifications found for this user.",
+      });
     }
 
     res.json(notifications);
   } catch (error) {
     console.log("Error fetching notifications:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal Server Error. Unable to fetch notifications.",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error. Unable to fetch notifications.",
+    });
   }
 };
+
 
 // Get comment by ID
 const getNotificationsById = async (req, res) => {

@@ -146,13 +146,14 @@ const addComment = async (req, res) => {
       if (userRows.length > 0) {
         await pool.query(
           `INSERT INTO notifications 
-          (notification_message, registration_id, user_id, author_id, report_id, author) 
-          VALUES (?, ?, ?, ?, ?, ?)`,
+          (notification_message, registration_id, user_id, author_id, report_id, application_id, author) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             `New comment on your report #${report_id}: ${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}`,
             registration_id,
             userRows[0].ID, // user_id from users table
             author_id,
+            report_id,
             report_id,
             author
           ]

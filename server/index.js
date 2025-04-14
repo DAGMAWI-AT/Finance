@@ -48,8 +48,7 @@ app.use("/user_report", express.static("public/user_report"));
 app.use("/cso_files", express.static(path.join(__dirname, "public/cso_files")));
 
 
-app.use("/idFiles", express.static(path.join(__dirname, "public/idFiles")));
-app.use('/photoFiles', express.static(path.join(__dirname, 'public/photoFiles')));
+app.use("/beneficiary", express.static(path.join(__dirname, "public/beneficiary")));
 
 app.use("/staff", express.static(path.join(__dirname, "public/staff")));
 app.use("/staff", express.static("public/staff"));

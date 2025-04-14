@@ -1,268 +1,260 @@
 const { pool } = require('../config/db');
-const { createBeneficiaryTable } = require("../model/beneficiary");
+const { createBeneficiaryTable } = require('../model/beneficiary');
 const path = require('path');
 const fs = require('fs');
-const { validationResult } = require('express-validator'); // For input validation
+const { validationResult } = require('express-validator');
+const multer = require('multer');
 
-// Utility function to delete old files
-const deleteOldFile = async (filePath, folderPath) => {
+const uploadFolder = path.join(__dirname, '../public/beneficiary');
+
+// File Filters
+const idFileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/") || file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error('Only images and PDFs are allowed for ID files'), false);
+  }
+};
+
+const photoFileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only images are allowed for photos'), false);
+  }
+};
+
+const storage = multer.memoryStorage();
+
+// Utility Functions
+const ensureFolderExists = (folderPath) => {
+  if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+};
+
+const saveFileToDisk = (req, fileField, folderName, identifier) => {
+  if (!req.files?.[fileField]?.[0]) return null;
+  
+  const destFolder = path.join(uploadFolder, folderName);
+  ensureFolderExists(destFolder);
+  
+  const file = req.files[fileField][0];
+  const cleanIdentifier = (identifier || 'unknown').replace(/\s+/g, "_");
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const ext = path.extname(file.originalname);
+  const filename = `${cleanIdentifier}_${timestamp}_${randomStr}${ext}`;
+  
+  const filePath = path.join(destFolder, filename);
+  fs.writeFileSync(filePath, file.buffer);
+  
+  return path.join(folderName, filename).replace(/\\/g, '/');
+};
+
+const deleteFileIfExists = async (filePath) => {
   if (filePath) {
-    const oldFilePath = path.join(folderPath, filePath);
+    const fullPath = path.join(uploadFolder, filePath);
     try {
-      await fs.promises.access(oldFilePath); // Check if the file exists
-      await fs.promises.unlink(oldFilePath); // Delete the file
+      if (fs.existsSync(fullPath)) await fs.promises.unlink(fullPath);
     } catch (err) {
-      if (err.code !== 'ENOENT') { // Ignore file not found errors
-        console.error(`Error deleting old file: ${oldFilePath}`, err);
-        throw err;
-      }
+      console.error(`Error deleting file ${filePath}:`, err);
+      throw err;
     }
   }
 };
-const processFile = (req, fileField, folderName, reqBodyCsoName) => {
-  if (req.files && req.files[fileField] && req.files[fileField][0]) {
-    const destFolder = path.join(uploadFolder, folderName);
-    ensureFolderExists(destFolder);
-    const csoName = reqBodyCsoName ? reqBodyCsoName.replace(/\s+/g, "_") : "CSO";
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const ext = path.extname(req.files[fileField][0].originalname);
-    const filename = `${csoName}_${timestamp}_${randomStr}${ext}`;
-    const filePath = path.join(destFolder, filename);
-    fs.writeFileSync(filePath, req.files[fileField][0].buffer);
-    return folderName + "/" + filename;
+
+// Multer Middleware
+exports.uploadFiles = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'idFile') return idFileFilter(req, file, cb);
+    if (file.fieldname === 'photo') return photoFileFilter(req, file, cb);
+    cb(new Error('Invalid file field'));
   }
-  return null;
-};
-// Create a new beneficiary
+}).fields([
+  { name: 'idFile', maxCount: 1 },
+  { name: 'photo', maxCount: 1 }
+]);
+
+// Controller Methods
 exports.createBeneficiary = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
 
+  let connection;
   try {
-    createBeneficiaryTable();
-    const {
-      fullName,
-      phone,
-      email,
-      kebele,
-      location,
-      wereda,
-      gender,
-      age,
-      school,
-      kfleketema,
-      houseNo,
-    } = req.body;
-
-
-
-    if (parseInt(age) < 0) {
-      return res.status(400).json({ success: false, message: "Age cannot be negative" });
-    }
-
-    
-    const idFileName = processFile(req, "idFile", "idFiles", fullName);
-    const photoFileName = processFile(req, "photo", "photoFiles", fullName);
-    const connection = await pool.getConnection();
+    await createBeneficiaryTable();
+    const data = req.body;
+    connection = await pool.getConnection();
     await connection.beginTransaction();
-    const [existingUser] = await connection.query(
-      `SELECT * FROM beneficiaries WHERE email = ? OR phone = ?`,
-      [email, phone]
-    );
 
-    if (existingUser.length > 0) {
+    // Check duplicates
+    const [existing] = await connection.query(
+      `SELECT * FROM beneficiaries WHERE email = ? OR phone = ?`,
+      [data.email, data.phone]
+    );
+    if (existing.length > 0) {
       await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        message: "An account already exists for the provided email or phone.",
+      return res.status(400).json({ 
+        success: false, 
+        message: "Account already exists for email or phone" 
       });
     }
-    try {
-      // Insert new beneficiary WITHOUT the custom beneficiary_id
-      const query = `
-        INSERT INTO beneficiaries 
-        (fullName, phone, email, kebele, location, wereda, kfleketema, houseNo, gender, age, school, idFile, photo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
 
-      const [result] = await connection.execute(query, [
-        fullName,
-        phone,
-        email,
-        kebele,
-        location,
-        wereda,
-        kfleketema,
-        houseNo,
-        gender,
-        age,
-        school,
-        idFileName,
-        photoFileName
-      ]);
+    // Process files
+    data.idFile = saveFileToDisk(req, "idFile", "idFiles", data.fullName);
+    data.photo = saveFileToDisk(req, "photo", "photoFiles", data.fullName);
 
-      // Get the auto-increment ID generated for this record
-      const insertedId = result.insertId;
+    // Insert record
+    const [result] = await connection.query(`INSERT INTO beneficiaries SET ?`, [data]);
+    const insertedId = result.insertId;
+    const beneficiary_id = `LA-${insertedId.toString().padStart(5, "0")}`;
 
-      // Generate the custom beneficiary_id using the auto-increment value
-      const beneficiary_id = `LA-${insertedId.toString().padStart(5, "0")}`;
+    await connection.query(
+      `UPDATE beneficiaries SET beneficiary_id = ? WHERE id = ?`,
+      [beneficiary_id, insertedId]
+    );
 
-      // Update the record with the generated beneficiary_id
-      await connection.execute(
-        "UPDATE beneficiaries SET beneficiary_id = ? WHERE id = ?",
-        [beneficiary_id, insertedId]
-      );
+    await connection.commit();
+    
+    res.status(201).json({
+      success: true,
+      message: "Beneficiary created",
+      data: { beneficiary_id, id: insertedId, ...data }
+    });
 
-      // Commit the transaction
-      await connection.commit();
-      connection.release();
-
-      res.status(201).json({ success: true, message: "Beneficiary created successfully", data: { beneficiary_id, insertedId } });
-    } catch (error) {
-      // Rollback the transaction in case of error
-      await connection.rollback();
-      connection.release();
-      throw error;
-    }
   } catch (error) {
-    console.error('Error creating beneficiary:', error);
-    res.status(400).json({ success: false, message: "Failed to create beneficiary", error: error.message });
+    if (connection) await connection.rollback();
+    console.error("Create error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Operation failed", 
+      error: error.message 
+    });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
-// Get all beneficiaries
+exports.updateBeneficiary = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
+
+  let connection;
+  try {
+    const data = req.body;
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    // Get existing files
+    const [existing] = await connection.query(
+      `SELECT idFile, photo FROM beneficiaries WHERE id = ? FOR UPDATE`,
+      [req.params.id]
+    );
+    if (!existing.length) {
+      await connection.rollback();
+      return res.status(404).json({ success: false, message: "Beneficiary not found" });
+    }
+
+    const oldFiles = { idFile: existing[0].idFile, photo: existing[0].photo };
+    const newFiles = {
+      idFile: req.files?.idFile ? saveFileToDisk(req, "idFile", "idFiles", data.fullName) : null,
+      photo: req.files?.photo ? saveFileToDisk(req, "photo", "photoFiles", data.fullName) : null
+    };
+
+    // Update record
+    await connection.query(
+      `UPDATE beneficiaries SET 
+        fullName = ?, phone = ?, email = ?, kebele = ?,
+        location = ?, wereda = ?, kfleketema = ?, houseNo = ?,
+        gender = ?, age = ?, school = ?,
+        idFile = COALESCE(?, idFile),
+        photo = COALESCE(?, photo)
+      WHERE id = ?`,
+      [
+        data.fullName, data.phone, data.email, data.kebele,
+        data.location, data.wereda, data.kfleketema, data.houseNo,
+        data.gender, data.age, data.school,
+        newFiles.idFile, newFiles.photo, req.params.id
+      ]
+    );
+
+    await connection.commit();
+
+    // Cleanup old files after successful update
+    if (newFiles.idFile) await deleteFileIfExists(oldFiles.idFile);
+    if (newFiles.photo) await deleteFileIfExists(oldFiles.photo);
+
+    res.status(200).json({ success: true, message: "Beneficiary updated" });
+
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error("Update error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Update failed", 
+      error: error.message 
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+exports.deleteBeneficiary = async (req, res) => {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [existing] = await connection.query(
+      `SELECT idFile, photo FROM beneficiaries WHERE id = ? FOR UPDATE`,
+      [req.params.id]
+    );
+    if (!existing.length) {
+      await connection.rollback();
+      return res.status(404).json({ success: false, message: "Beneficiary not found" });
+    }
+
+    await connection.query(`DELETE FROM beneficiaries WHERE id = ?`, [req.params.id]);
+    await connection.commit();
+
+    // Delete files after successful commit
+    await deleteFileIfExists(existing[0].idFile);
+    await deleteFileIfExists(existing[0].photo);
+
+    res.status(200).json({ success: true, message: "Beneficiary deleted" });
+
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error("Delete error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Deletion failed", 
+      error: error.message 
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Get methods remain unchanged
 exports.getAllBeneficiaries = async (req, res) => {
   try {
-    const [rows] = await pool.execute('SELECT * FROM beneficiaries');
+    const [rows] = await pool.execute('SELECT * FROM beneficiaries ORDER BY createdAt DESC');
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    console.error('Error fetching beneficiaries:', error);
-    res.status(500).json({ success: false, message: "Failed to fetch beneficiaries", error: error.message });
+    console.error('Fetch error:', error);
+    res.status(500).json({ success: false, message: "Fetch failed", error: error.message });
   }
 };
 
-// Get a single beneficiary by ID
 exports.getBeneficiaryById = async (req, res) => {
   try {
     const [rows] = await pool.execute('SELECT * FROM beneficiaries WHERE id = ?', [req.params.id]);
-    if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Beneficiary not found' });
-    }
+    if (!rows.length) return res.status(404).json({ success: false, message: "Not found" });
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    console.error('Error fetching beneficiary:', error);
-    res.status(500).json({ success: false, message: "Failed to fetch beneficiary", error: error.message });
-  }
-};
-
-// Update a beneficiary
-exports.updateBeneficiary = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, errors: errors.array() });
-  }
-
-  try {
-    const {
-      fullName,
-      phone,
-      email,
-      kebele,
-      location,
-      wereda,
-      gender,
-      age,
-      school,
-      kfleketema,
-      houseNo
-    } = req.body;
-
-    // Validate that age is not negative
-    if (parseInt(age) < 0) {
-      return res.status(400).json({ success: false, message: "Age cannot be negative" });
-    }
-
-    // Check if the beneficiary exists
-    const [existing] = await pool.execute('SELECT idFile, photo FROM beneficiaries WHERE id = ?', [req.params.id]);
-    if (existing.length === 0) {
-      return res.status(404).json({ success: false, message: 'Beneficiary not found' });
-    }
-
-    let idFilePath = existing[0].idFile;
-    let photoFilePath = existing[0].photo;
-
-    // Handle ID file update
-    if (req.files?.idFile) {
-      await deleteOldFile(idFilePath, path.join(__dirname, '..', 'public', 'idFiles'));
-      idFilePath = req.files['idFile'][0].filename;
-    }
-
-    // Handle photo update
-    if (req.files?.photo) {
-      await deleteOldFile(photoFilePath, path.join(__dirname, '..', 'public', 'photoFiles'));
-      photoFilePath = req.files['photo'][0].filename;
-    }
-
-    // Update the beneficiary in the database
-    const query = `
-      UPDATE beneficiaries
-      SET 
-        fullName = ?,
-        phone = ?,
-        email = ?,
-        kebele = ?,
-        location = ?,
-        wereda = ?,
-        kfleketema = ?,
-        houseNo = ?,
-        gender = ?,
-        age = ?,
-        school = ?,
-        idFile = ?,
-        photo = ?
-      WHERE id = ?
-    `;
-
-    await pool.execute(query, [
-      fullName,
-      phone,
-      email,
-      kebele,
-      location,
-      wereda,
-      kfleketema,
-      houseNo,
-      gender,
-      age,
-      school,
-      idFilePath,
-      photoFilePath,
-      req.params.id
-    ]);
-
-    res.status(200).json({ success: true, message: 'Beneficiary updated successfully' });
-  } catch (error) {
-    console.error('Error updating beneficiary:', error);
-    res.status(400).json({ success: false, message: "Failed to update beneficiary", error: error.message });
-  }
-};
-
-// Delete a beneficiary by ID
-exports.deleteBeneficiary = async (req, res) => {
-  try {
-    // Check if beneficiary exists before deleting
-    const [existing] = await pool.execute('SELECT * FROM beneficiaries WHERE id = ?', [req.params.id]);
-    if (existing.length === 0) {
-      return res.status(404).json({ success: false, message: 'Beneficiary not found' });
-    }
-
-    await pool.execute('DELETE FROM beneficiaries WHERE id = ?', [req.params.id]);
-    res.status(200).json({ success: true, message: 'Beneficiary deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting beneficiary:', error);
-    res.status(500).json({ success: false, message: "Failed to delete beneficiary", error: error.message });
+    console.error('Fetch error:', error);
+    res.status(500).json({ success: false, message: "Fetch failed", error: error.message });
   }
 };

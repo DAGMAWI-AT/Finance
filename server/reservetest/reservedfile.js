@@ -422,3 +422,58 @@ exports.deleteLetter = async (req, res) => {
       connection.release();
   }
 };
+
+
+// Get single letter by ID
+// exports.getLetterById = async (req, res) => {
+//   try {
+//     const [letters] = await pool.query(`
+//       SELECT 
+//         l.id, l.title, l.summary, l.type,
+//         l.send_to_all AS sendToAll,
+//         l.selected_csos AS selectedCsos,
+//         l.attachment_path AS attachmentPath,
+//         l.attachment_name AS attachmentName,
+//         l.attachment_mimetype AS attachmentMimetype,
+//         l.created_at AS createdAt,
+//         l.updated_at AS updatedAt,
+//         s.name AS createdBy
+//       FROM letters l
+//       LEFT JOIN staff s ON l.created_by = s.id
+//       WHERE l.id = ?
+//     `, [req.params.id]);
+
+//     if (!letters || letters.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Letter not found'
+//       });
+//     }
+
+//     const parseSelectedCsos = (input) => {
+//       if (!input) return [];
+//       try {
+//         const parsed = JSON.parse(input);
+//         return Array.isArray(parsed) ? parsed : [parsed];
+//       } catch (e) {
+//         return [];
+//       }
+//     };
+
+//     const letter = letters[0];
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         ...letter,
+//         selectedCsos: parseSelectedCsos(letter.selectedCsos)
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error fetching letter:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch letter',
+//       error: error.message
+//     });
+//   }
+// };

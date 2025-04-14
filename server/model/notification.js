@@ -8,10 +8,11 @@ async function createNotificationsTable() {
       CREATE TABLE IF NOT EXISTS notifications (
         id INT AUTO_INCREMENT PRIMARY KEY,
         notification_message TEXT NOT NULL,  -- Consistent naming
-        registration_id VARCHAR(255) NOT NULL,
+        registration_id VARCHAR(255) DEFAULT NULL,
         user_id INT DEFAULT NULL,
         author_id VARCHAR(255) NOT NULL,
-        report_id INT NOT NULL,
+        report_id INT DEFAULT NULL,
+        application_id INT NOT NULL,
         author VARCHAR(255) NOT NULL,
         \`read\` BOOLEAN DEFAULT FALSE,  -- Use backticks for the reserved keyword
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
