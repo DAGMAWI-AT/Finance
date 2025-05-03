@@ -11,7 +11,19 @@ const notificationRoute = require("./route/notificationRoute");
 const projectRoutes = require('./route/projectRoute');
 const letterRoute = require('./route/letterRoute');  // Path to the routes file
 const formRoute = require('./route/formRoute');  // Path to the routes file
+const contactRoute = require('./route/contactRoute'); 
+const backupRoute = require('./route/backupRoute');
+const newsRoute = require('./route/newsRoute');
+const aboutRoute = require('./route/aboutRoute');
+const heroRoute = require('./route/heroRoute');
+const serviceRoute = require('./route/serviceRoute');
 
+
+
+
+// Add automated backup schedule
+const cron = require('node-cron');
+// const { backupDatabase, backupFiles, cleanupBackups } = require('./utils/backupUtils');
 const cookieParser = require("cookie-parser");
 
 const { connectDB, pool, checkConnection } = require('./config/db');
@@ -29,11 +41,26 @@ app.use(cors({
 
 // app.use(cors({ origin: 'https://csosfinance1.netlify.app', credentials: true }));
 
-
+cron.schedule('0 2 * * *', async () => {
+  console.log('Running scheduled backup...');
+  try {
+    await backupDatabase();
+    await backupFiles();
+    await cleanupBackups();
+  } catch (err) {
+    console.error('Scheduled backup failed:', err);
+  }
+});
 // Middleware
 // app.use(cors());
 app.use(bodyParser.json()); // Parse JSON request bodies
+app.use("/hero", express.static("public/hero"));
+
 app.use("/letter", express.static(path.join(__dirname, "public/letter")));
+app.use("/news", express.static(path.join(__dirname, "public/news")));
+app.use("/news", express.static("public/news"));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
 app.use("/forms", express.static(path.join(__dirname, "public/forms")));
 app.use("/comment", express.static("public/comments"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -66,7 +93,22 @@ app.use('/api/letters',letterRoute);  // Use the letter routes
 
 app.use('/api', beneficiaryRoute);
 
+
 app.use('/api/form', formRoute);
+
+// app.use('/api/backups', backupRoute);
+
+
+
+
+
+//web content api
+app.use('/api/news', newsRoute);
+app.use('/api/contact', contactRoute);
+app.use('/api/about', aboutRoute);
+app.use("/api/hero", heroRoute);
+app.use('/api/services', serviceRoute);
+
 
 // app.get('/health', async (req, res) => {
 //   try {

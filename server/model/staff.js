@@ -25,7 +25,7 @@ async function createStaffTable() {
         )`;
         await pool.query(query);
     } catch (error) {
-        console.errosr("Error creating staff table:", error);
+        console.error("Error creating staff table:", error);
         throw error;
     }
 }
