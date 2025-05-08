@@ -477,3 +477,25 @@ exports.deleteLetter = async (req, res) => {
 //     });
 //   }
 // };
+
+
+
+
+
+
+
+
+
+
+// db
+// const pool = mysql.createPool({
+//   host: process.env.MYSQLHOST || "metro.proxy.rlwy.net",
+//   user: process.env.MYSQLUSER || "root",
+//   password: process.env.MYSQLPASSWORD || "XttPKaEaUENjbqrQpskEYYcxtiAEIJej",
+//   database: process.env.MYSQLDATABASE || "railway",
+//   port: process.env.MYSQLPORT || 51952,
+//   waitForConnections: true,
+//   connectionLimit: 10,
+//   queueLimit: 0
+// });
+// if0_37792639_fainance_office	use_name if0_37792639  user_host_name sql309.infinityfree.com	
