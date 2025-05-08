@@ -11,18 +11,28 @@ require("dotenv").config();
 //   connectionLimit: 10,
 //   queueLimit: 0,
 //   connectTimeout: 10000, // 10 seconds timeout
-
+// mysql://root:WmrkTttxEWzWOFtqFtUAjYuKwXYcYQpw@crossover.proxy.rlwy.net:25132/railway
 // });
 const pool = mysql.createPool({
-  host: process.env.MYSQLHOST || "metro.proxy.rlwy.net",
+  host: process.env.MYSQLHOST || "crossover.proxy.rlwy.net",
   user: process.env.MYSQLUSER || "root",
-  password: process.env.MYSQLPASSWORD || "XttPKaEaUENjbqrQpskEYYcxtiAEIJej",
+  password: process.env.MYSQLPASSWORD || "WmrkTttxEWzWOFtqFtUAjYuKwXYcYQpw",
   database: process.env.MYSQLDATABASE || "railway",
-  port: process.env.MYSQLPORT || 51952,
+  port: process.env.MYSQLPORT || 25132,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
+// const pool = mysql.createPool({
+//   host: process.env.MYSQLHOST || "metro.proxy.rlwy.net",
+//   user: process.env.MYSQLUSER || "root",
+//   password: process.env.MYSQLPASSWORD || "XttPKaEaUENjbqrQpskEYYcxtiAEIJej",
+//   database: process.env.MYSQLDATABASE || "railway",
+//   port: process.env.MYSQLPORT || 51952,
+//   waitForConnections: true,
+//   connectionLimit: 10,
+//   queueLimit: 0
+// });
 // if0_37792639_fainance_office	use_name if0_37792639  user_host_name sql309.infinityfree.com	
 async function connectDB() {
   try {

@@ -16,21 +16,21 @@ const { createServiceTable } = require('./model/service');
 async function runMigrations() {
   try {
     console.log("Starting table migrations...");
+    await createLettersTable();
     await createServiceTable();
-    await createHeroSlidesTable();
-    await createAboutTable();
-    await createNewsTable();
-    await createNews_CommentsTable();
+  await createHeroSlidesTable();
+  await createAboutTable();
+  await createNewsTable();
+  await createNews_CommentsTable();
     await contactInfoTable();
     await createStaffTable();
     await createCsoTable();           
     await createUserTable();
     await createFormTable();
     await createBeneficiaryTable();
+    await createApplicationFormTable();
     await createCommentsTable();
     await createNotificationsTable();
-    await createLettersTable();
-    await createApplicationFormTable();
 
     // ... call other table functions in order (respect foreign key dependencies)
     console.log("✅ All tables created successfully.");

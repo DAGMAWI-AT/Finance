@@ -127,7 +127,7 @@ exports.createLetter = async (req, res) => {
     await connection.beginTransaction();
     await createLettersTable();
 
-    const { title, summary, type, sendToAll, selectedCsos } = req.body;
+    const { title, summary, type, sendToAll, selectedCsos, date } = req.body;
     const userId = req.user.id;
 
     const letterData = {
@@ -137,7 +137,8 @@ exports.createLetter = async (req, res) => {
       send_to_all: sendToAll === 'true',
       selected_csos: prepareSelectedCsos(selectedCsos),
       created_by: userId,
-      ...saveAttachment(req)
+      ...saveAttachment(req),
+      date: new Date(date)
     };
 
     const [result] = await connection.query(`INSERT INTO letters SET ?`, [letterData]);
@@ -170,14 +171,15 @@ exports.updateLetter = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Letter not found' });
     }
 
-    const { title, summary, type, sendToAll, selectedCsos } = req.body;
+    const { title, summary, type, sendToAll, selectedCsos, date } = req.body;
     const updateData = {
       title,
       summary,
       type,
       send_to_all: sendToAll === 'true',
       selected_csos: prepareSelectedCsos(selectedCsos, true, currentLetter[0].selected_csos),
-      updated_at: new Date()
+      updated_at: new Date(),
+      date : new Date(date)
     };
 
     if (req.file) {
@@ -244,7 +246,7 @@ exports.getAllLetters = async (req, res) => {
   try {
     const [letters] = await pool.query(`
       SELECT 
-        id, title, summary, type,
+        id, title, summary, type, date,
         send_to_all AS sendToAll,
         selected_csos AS selectedCsos,
         attachment_path AS attachmentPath,
@@ -305,7 +307,7 @@ exports.getLetterById = async (req, res) => {
   try {
     const [letters] = await pool.query(
       `SELECT 
-        l.id, l.title, l.summary, l.type,
+        l.id, l.title, l.summary, l.type, l.date,
         l.send_to_all AS sendToAll,
         l.selected_csos AS selectedCsos,
         l.attachment_path AS attachmentPath,

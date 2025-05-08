@@ -2,7 +2,7 @@ const { pool } = require("../config/db");
 
 async function createHeroSlidesTable() {
   try {
-    await pool.query(`DROP TABLE IF EXISTS hero_slides`);
+    // await pool.query(`DROP TABLE IF EXISTS hero_slides`);
     const query = `
       CREATE TABLE hero_slides (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -14,7 +14,7 @@ async function createHeroSlidesTable() {
       );
     `;
     await pool.query(query);
-    console.log("✅ hero_slides table created.");
+    // console.log("✅ hero_slides table created.");
   } catch (err) {
     console.error("❌ Error creating hero_slides table:", err);
   }

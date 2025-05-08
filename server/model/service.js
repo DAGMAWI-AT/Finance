@@ -12,7 +12,8 @@ async function createServiceTable() {
   try {
     await pool.query(query);
   } catch (error) {
-    console.error("❌ Error creating 'services' table:", error.message);
+    // console.error("❌ Error creating 'services' table:", error.message);
+    console.error("❌ Error creating 'services' table:", error);
     throw error;
   }
 }

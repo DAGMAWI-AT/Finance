@@ -18,7 +18,7 @@ async function createAboutTable() {
     `;
     
     await pool.query(query);
-    console.log("✅ about_us table created successfully.");
+    // console.log("✅ about_us table created successfully.");
   } catch (error) {
     console.error("❌ Error creating about_us table:", error);
     throw error;

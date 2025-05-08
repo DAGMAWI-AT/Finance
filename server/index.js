@@ -41,16 +41,16 @@ app.use(cors({
 
 // app.use(cors({ origin: 'https://csosfinance1.netlify.app', credentials: true }));
 
-cron.schedule('0 2 * * *', async () => {
-  console.log('Running scheduled backup...');
-  try {
-    await backupDatabase();
-    await backupFiles();
-    await cleanupBackups();
-  } catch (err) {
-    console.error('Scheduled backup failed:', err);
-  }
-});
+// cron.schedule('0 2 * * *', async () => {
+//   console.log('Running scheduled backup...');
+//   try {
+//     await backupDatabase();
+//     await backupFiles();
+//     await cleanupBackups();
+//   } catch (err) {
+//     console.error('Scheduled backup failed:', err);
+//   }
+// });
 // Middleware
 // app.use(cors());
 app.use(bodyParser.json()); // Parse JSON request bodies

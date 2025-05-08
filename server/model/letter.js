@@ -3,6 +3,8 @@ const fs = require('fs');
 
 async function createLettersTable() {
     try {
+            // await pool.query(`DROP TABLE IF EXISTS letters`);
+
         const query = `
 CREATE TABLE IF NOT EXISTS letters (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -11,8 +13,9 @@ CREATE TABLE IF NOT EXISTS letters (
     type ENUM('Meeting', 'Announcement', 'Warning') NOT NULL,
     attachment_path VARCHAR(255),
     attachment_name VARCHAR(255),
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     attachment_mimetype VARCHAR(100),
-    send_to_all BOOLEAN DEFAULT FALSE,
+    send_to_all BOOLEAN NOT NULL,
     selected_csos JSON,
     created_by VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
