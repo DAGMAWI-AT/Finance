@@ -17,6 +17,7 @@ const createBeneficiaryTable = async () => {
       age VARCHAR(255) NOT NULL,
       school VARCHAR(255) DEFAULT NULL,
       idFile VARCHAR(255) DEFAULT NULL,
+      birth_certificate VARCHAR(255) DEFAULT NULL,
       photo VARCHAR(255) NOT NULL,
       updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP

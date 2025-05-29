@@ -69,11 +69,13 @@ exports.uploadFiles = multer({
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'idFile') return idFileFilter(req, file, cb);
     if (file.fieldname === 'photo') return photoFileFilter(req, file, cb);
+    if (file.fieldname === 'birth_certificate') return idFileFilter(req, file, cb);
     cb(new Error('Invalid file field'));
   }
 }).fields([
   { name: 'idFile', maxCount: 1 },
-  { name: 'photo', maxCount: 1 }
+  { name: 'photo', maxCount: 1 },
+  { name: 'birth_certificate', maxCount: 1 }
 ]);
 
 // Controller Methods
@@ -103,6 +105,8 @@ exports.createBeneficiary = async (req, res) => {
 
     // Process files
     data.idFile = saveFileToDisk(req, "idFile", "idFiles", data.fullName);
+    data.birth_certificate = saveFileToDisk(req, "birth_certificate", "birth_certificate", data.fullName);
+
     data.photo = saveFileToDisk(req, "photo", "photoFiles", data.fullName);
 
     // Insert record
@@ -148,7 +152,7 @@ exports.updateBeneficiary = async (req, res) => {
 
     // Get existing files
     const [existing] = await connection.query(
-      `SELECT idFile, photo FROM beneficiaries WHERE id = ? FOR UPDATE`,
+      `SELECT idFile, birth_certificate, photo FROM beneficiaries WHERE id = ? FOR UPDATE`,
       [req.params.id]
     );
     if (!existing.length) {
@@ -156,9 +160,10 @@ exports.updateBeneficiary = async (req, res) => {
       return res.status(404).json({ success: false, message: "Beneficiary not found" });
     }
 
-    const oldFiles = { idFile: existing[0].idFile, photo: existing[0].photo };
+    const oldFiles = { idFile: existing[0].idFile, birth_certificate: existing[0].birth_certificate, photo: existing[0].photo};
     const newFiles = {
       idFile: req.files?.idFile ? saveFileToDisk(req, "idFile", "idFiles", data.fullName) : null,
+      birth_certificate: req.files?.birth_certificate ? saveFileToDisk(req, "birth_certificate", "birth_certificate", data.fullName) : null,
       photo: req.files?.photo ? saveFileToDisk(req, "photo", "photoFiles", data.fullName) : null
     };
 
@@ -169,13 +174,15 @@ exports.updateBeneficiary = async (req, res) => {
         location = ?, wereda = ?, kfleketema = ?, houseNo = ?,
         gender = ?, age = ?, school = ?,
         idFile = COALESCE(?, idFile),
+        birth_certificate = COALESCE(?, birth_certificate),
         photo = COALESCE(?, photo)
+
       WHERE id = ?`,
       [
         data.fullName, data.phone, data.email, data.kebele,
         data.location, data.wereda, data.kfleketema, data.houseNo,
         data.gender, data.age, data.school,
-        newFiles.idFile, newFiles.photo, req.params.id
+        newFiles.idFile, newFiles.birth_certificate, newFiles.photo, req.params.id
       ]
     );
 
@@ -183,6 +190,7 @@ exports.updateBeneficiary = async (req, res) => {
 
     // Cleanup old files after successful update
     if (newFiles.idFile) await deleteFileIfExists(oldFiles.idFile);
+    if (newFiles.birth_certificate) await deleteFileIfExists(oldFiles.birth_certificate);
     if (newFiles.photo) await deleteFileIfExists(oldFiles.photo);
 
     res.status(200).json({ success: true, message: "Beneficiary updated" });
@@ -207,7 +215,7 @@ exports.deleteBeneficiary = async (req, res) => {
     await connection.beginTransaction();
 
     const [existing] = await connection.query(
-      `SELECT idFile, photo FROM beneficiaries WHERE id = ? FOR UPDATE`,
+      `SELECT idFile, birth_certificate, photo FROM beneficiaries WHERE id = ? FOR UPDATE`,
       [req.params.id]
     );
     if (!existing.length) {
@@ -220,6 +228,7 @@ exports.deleteBeneficiary = async (req, res) => {
 
     // Delete files after successful commit
     await deleteFileIfExists(existing[0].idFile);
+    await deleteFileIfExists(existing[0].birth_certificate);
     await deleteFileIfExists(existing[0].photo);
 
     res.status(200).json({ success: true, message: "Beneficiary deleted" });
