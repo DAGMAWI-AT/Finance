@@ -10,11 +10,7 @@ const bcrypt = require("bcrypt");
 // const bcrypt = require('bcryptjs');
 
 const secretKey = process.env.JWT_secretKey;
-// if (!secretKey) {
-//   throw new Error("JWT_secretKey is not set in the environment variables.");
-// }
-// const jwt = require('jsonwebtoken');
-// require('dotenv').config();
+
 
 const restKey = process.env.JWT_SECRET;
 if (!restKey) {
@@ -25,11 +21,11 @@ const generateResetToken = (userId) => {
   return jwt.sign({ id: userId }, restKey, { expiresIn: "1h" });
 };
 const loginLimite = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per window
+  windowMs: 15 * 60 * 1000, 
+  max: 10, 
   message: "Too many login attempts. Please try again later.",
-  statusCode: 429, // Status code for rate limiting
-  headers: true, // Include rate limiting headers in the response
+  statusCode: 429, 
+  headers: true, 
 });
 
 // Handle login
