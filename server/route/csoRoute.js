@@ -9,6 +9,7 @@ const {
   updateCso,
   deleteCso,
   getCsoByRegistrationId,
+  getCsoByPhoneOrEmail,
   upload,
 } = require("../controller/csoController");
 const verifyToken = require("../middleware/authMiddleware");
@@ -36,5 +37,10 @@ router.get("/:id", verifyToken, getCsoById);
 router.get("/res/:id", getCsoById);
 router.patch("/update/:id", upload, updateCso);
 router.delete("/remove/:id", deleteCso);
+
+//by email
+
+router.get("/email/check", getCsoByPhoneOrEmail);
+
 
 module.exports = router;

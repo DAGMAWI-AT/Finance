@@ -160,6 +160,74 @@ const getCsoById = async (req, res) => {
   }
 };
 
+// const getCsoByEmail = async (req, res) => {
+//   const phone = req.params.phone;
+//   try {
+//     const [cso] = await pool.query(`SELECT * FROM cso WHERE phone = ?`, [phone]);
+//     if (cso.length === 0) {
+//       return res.status(404).json({ success: false, message: "CSO not found" });
+//     }
+//     res.json(cso[0]);
+//   } catch (error) {
+//     console.error("Error fetching CSO by email:", error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
+async function getCsoByPhoneOrEmail(req, res) {
+    const { phone, email } = req.query;
+
+    if (!phone && !email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "Please provide either phone or email" 
+        });
+    }
+
+    try {
+        let query;
+        let params;
+
+        if (phone && email) {
+            query = `SELECT * FROM ${csoTable} WHERE phone = ? OR email = ?`;
+            params = [phone, email];
+        } else if (phone) {
+            query = `SELECT * FROM ${csoTable} WHERE phone = ?`;
+            params = [phone];
+        } else {
+            query = `SELECT * FROM ${csoTable} WHERE email = ?`;
+            params = [email];
+        }
+
+        const [results] = await pool.query(query, params);
+
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "CSO not found" 
+            });
+        }
+
+        // For security, you might want to exclude sensitive fields
+        const csoData = results.map(cso => {
+            const { id, registrationId, csoName, repName, email, phone, sector, location, office, role, status } = cso;
+            return { id, registrationId, csoName, repName, email, phone, sector, location, office, role, status };
+        });
+
+        res.status(200).json({ 
+            success: true, 
+            data: csoData 
+        });
+
+    } catch (error) {
+        console.error("Error fetching CSO data:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
+    }
+}
+
 
 const updateCso = async (req, res) => {
   // Run validations (if using express-validator middleware)
@@ -311,4 +379,5 @@ module.exports = {
   updateCso,
   deleteCso,
   getCsoByRegistrationId,
+  getCsoByPhoneOrEmail,
 };

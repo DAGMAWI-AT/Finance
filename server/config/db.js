@@ -3,15 +3,14 @@ const mysql = require("mysql2/promise");
 require("dotenv").config();
 
 // const pool = mysql.createPool({
-//   host: process.env.DB_HOST || "localhost" ,
-//   user: process.env.DB_USER || "root",
-//   password: process.env.DB_PASSWORD || "",
-//   database: process.env.DB_NAME || "finance_office",
+//   host: "mysql-db03.remote",
+//   port: 33636, // Specify the custom port here
+//   user: "bishoftucso",
+//   password: "bishoftucso", // Replace with actual password
+//   database: "bishoft2_",          // Replace with actual database name
 //   waitForConnections: true,
-//   connectionLimit: 10,
 //   queueLimit: 0,
-//   connectTimeout: 10000, // 10 seconds timeout
-// 
+//   connectTimeout: 10000 // 10 seconds
 // });
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST || "crossover.proxy.rlwy.net",
